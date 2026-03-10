@@ -27,7 +27,7 @@ export async function createProject(
       members: {
         create: {
           userId: ownerId,
-          role: 'PM',
+          projectRole: 'PM',
         },
       },
     },
