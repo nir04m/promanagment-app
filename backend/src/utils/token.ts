@@ -1,13 +1,13 @@
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { env } from '../config/env';
-import { Role } from '../constants/roles';
+import { SystemRole } from '../constants/roles';
 
 export interface TokenPayload {
   userId: string;
   email: string;
   name: string;
-  role: Role;
+  systemRole: SystemRole;
 }
 
 export interface RefreshTokenPayload {
@@ -15,7 +15,7 @@ export interface RefreshTokenPayload {
   tokenId: string;
 }
 
-// Signs a short-lived JWT access token containing the user's identity and role
+// Signs a short-lived JWT access token with the user's identity and system role
 export function signAccessToken(payload: TokenPayload): string {
   return jwt.sign(payload, env.JWT_ACCESS_SECRET, {
     expiresIn: env.JWT_ACCESS_EXPIRES_IN,
@@ -33,7 +33,7 @@ export function signRefreshToken(payload: RefreshTokenPayload): string {
   } as jwt.SignOptions);
 }
 
-// Verifies and decodes a JWT access token, throws if invalid or expired
+// Verifies and decodes a JWT access token — throws if invalid or expired
 export function verifyAccessToken(token: string): TokenPayload {
   return jwt.verify(token, env.JWT_ACCESS_SECRET, {
     issuer: 'promanagement-app',
@@ -41,7 +41,7 @@ export function verifyAccessToken(token: string): TokenPayload {
   }) as TokenPayload;
 }
 
-// Verifies and decodes a JWT refresh token, throws if invalid or expired
+// Verifies and decodes a JWT refresh token — throws if invalid or expired
 export function verifyRefreshToken(token: string): RefreshTokenPayload {
   return jwt.verify(token, env.JWT_REFRESH_SECRET, {
     issuer: 'promanagement-app',
@@ -49,7 +49,7 @@ export function verifyRefreshToken(token: string): RefreshTokenPayload {
   }) as RefreshTokenPayload;
 }
 
-// Generates a cryptographically secure random token used as a refresh token identifier
+// Generates a cryptographically secure random string used as a refresh token identifier
 export function generateTokenId(): string {
   return crypto.randomBytes(40).toString('hex');
 }

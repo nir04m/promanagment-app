@@ -13,7 +13,7 @@ import { HTTP_STATUS } from '../../constants/httpStatus';
 import { Request } from 'express';
 import { AuthResponse, AuthTokens } from './auth.types';
 import { RegisterInput, LoginInput, ChangePasswordInput } from './auth.schema';
-import { Role } from '../../constants/roles';
+import { SystemRole } from '../../constants/roles';
 import { addDays } from 'date-fns';
 
 // Generates a signed access and refresh token pair for a given user
@@ -21,14 +21,13 @@ async function generateTokenPair(
   userId: string,
   email: string,
   name: string,
-  role: Role
+  systemRole: SystemRole
 ): Promise<AuthTokens> {
   const tokenId = generateTokenId();
 
-  const accessToken = signAccessToken({ userId, email, name, role });
+  const accessToken = signAccessToken({ userId, email, name, systemRole });
   const refreshToken = signRefreshToken({ userId, tokenId });
 
-  // Store hashed refresh token in the database for validation and revocation
   await prisma.refreshToken.create({
     data: {
       userId,
@@ -40,7 +39,7 @@ async function generateTokenPair(
   return { accessToken, refreshToken };
 }
 
-// Registers a new user — only allowed if no existing user has the same email
+// Registers a new user with MEMBER system role by default
 export async function registerUser(
   input: RegisterInput,
   req: Request
@@ -60,6 +59,7 @@ export async function registerUser(
       email: input.email,
       name: input.name,
       passwordHash,
+      systemRole: 'MEMBER',
     },
   });
 
@@ -71,15 +71,19 @@ export async function registerUser(
     req,
   });
 
-  // New users have no project role yet — default to DEVELOPER for token until assigned
-  const tokens = await generateTokenPair(user.id, user.email, user.name, 'DEVELOPER');
+  const tokens = await generateTokenPair(
+    user.id,
+    user.email,
+    user.name,
+    user.systemRole as SystemRole
+  );
 
   return {
     user: {
       id: user.id,
       email: user.email,
       name: user.name,
-      role: 'DEVELOPER',
+      role: user.systemRole,
       avatarUrl: user.avatarUrl,
       createdAt: user.createdAt,
     },
@@ -94,15 +98,8 @@ export async function loginUser(
 ): Promise<AuthResponse> {
   const user = await prisma.user.findUnique({
     where: { email: input.email },
-    include: {
-      projectMemberships: {
-        orderBy: { joinedAt: 'desc' },
-        take: 1,
-      },
-    },
   });
 
-  // Use the same error message for both wrong email and wrong password to prevent enumeration
   if (!user) {
     throw new AppError('Invalid email or password', HTTP_STATUS.UNAUTHORIZED);
   }
@@ -116,10 +113,6 @@ export async function loginUser(
     throw new AppError('Invalid email or password', HTTP_STATUS.UNAUTHORIZED);
   }
 
-  // Use the role from the user's most recent project membership or default to DEVELOPER
-  const role: Role =
-    (user.projectMemberships[0]?.role as Role) ?? 'DEVELOPER';
-
   await writeAuditLog({
     userId: user.id,
     action: AUDIT_ACTIONS.USER_LOGIN,
@@ -128,14 +121,19 @@ export async function loginUser(
     req,
   });
 
-  const tokens = await generateTokenPair(user.id, user.email, user.name, role);
+  const tokens = await generateTokenPair(
+    user.id,
+    user.email,
+    user.name,
+    user.systemRole as SystemRole
+  );
 
   return {
     user: {
       id: user.id,
       email: user.email,
       name: user.name,
-      role,
+      role: user.systemRole,
       avatarUrl: user.avatarUrl,
       createdAt: user.createdAt,
     },
@@ -143,7 +141,7 @@ export async function loginUser(
   };
 }
 
-// Validates a refresh token and issues a new access and refresh token pair
+// Validates a refresh token and issues a new token pair
 export async function refreshTokens(
   refreshToken: string,
   req: Request
@@ -167,19 +165,11 @@ export async function refreshTokens(
     throw new AppError('Refresh token is invalid or expired', HTTP_STATUS.UNAUTHORIZED);
   }
 
-  // Rotate the refresh token — revoke old one and issue a new pair
+  // Rotate — revoke old token and issue a new pair
   await prisma.refreshToken.update({
     where: { tokenHash },
     data: { revoked: true },
   });
-
-  const memberships = await prisma.projectMember.findMany({
-    where: { userId: payload.userId },
-    orderBy: { joinedAt: 'desc' },
-    take: 1,
-  });
-
-  const role: Role = (memberships[0]?.role as Role) ?? 'DEVELOPER';
 
   await writeAuditLog({
     userId: payload.userId,
@@ -192,11 +182,11 @@ export async function refreshTokens(
     storedToken.user.id,
     storedToken.user.email,
     storedToken.user.name,
-    role
+    storedToken.user.systemRole as SystemRole
   );
 }
 
-// Revokes the provided refresh token so it cannot be used again after logout
+// Revokes the provided refresh token on logout
 export async function logoutUser(
   refreshToken: string,
   req: Request
@@ -222,7 +212,7 @@ export async function logoutUser(
   }
 }
 
-// Updates a user's password after verifying their current password is correct
+// Updates a user's password and revokes all existing sessions
 export async function changePassword(
   userId: string,
   input: ChangePasswordInput,
@@ -246,7 +236,6 @@ export async function changePassword(
     data: { passwordHash: newHash },
   });
 
-  // Revoke all existing refresh tokens so all sessions are invalidated after password change
   await prisma.refreshToken.updateMany({
     where: { userId, revoked: false },
     data: { revoked: true },

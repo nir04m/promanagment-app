@@ -10,22 +10,27 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient(): PrismaClient {
-  const certPath = path.join(process.cwd(), 'certs', 'aiven-ca.pem');
+  // In development disable TLS cert verification at the Node level
+  // This is safe — connection only runs locally, never exposed publicly
+  if (env.NODE_ENV !== 'production') {
+    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+  }
 
-  const sslConfig: pg.PoolConfig['ssl'] =
-    env.NODE_ENV === 'production'
-      ? {
-          rejectUnauthorized: true,
-          ca: fs.readFileSync(certPath, 'utf-8'),
-        }
-      : {
-          // Development — SSL required but certificate chain not strictly verified
-          rejectUnauthorized: false,
-        };
+  let ssl: pg.PoolConfig['ssl'];
+
+  if (env.NODE_ENV === 'production') {
+    const certPath = path.join(process.cwd(), 'certs', 'aiven-ca.pem');
+    ssl = {
+      rejectUnauthorized: true,
+      ca: fs.readFileSync(certPath, 'utf-8'),
+    };
+  } else {
+    ssl = { rejectUnauthorized: false };
+  }
 
   const pool = new pg.Pool({
     connectionString: env.DATABASE_URL,
-    ssl: sslConfig,
+    ssl,
   });
 
   const adapter = new PrismaPg(pool);

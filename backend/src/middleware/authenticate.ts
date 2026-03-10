@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken } from '../utils/token';
 import { HTTP_STATUS } from '../constants/httpStatus';
 
-// Verifies the JWT access token from the Authorization header and attaches the user to the request
+// Verifies the JWT access token and attaches the user's identity and system role to the request
 export function authenticate(req: Request, res: Response, next: NextFunction): void {
   const authHeader = req.headers.authorization;
 
@@ -32,7 +32,7 @@ export function authenticate(req: Request, res: Response, next: NextFunction): v
       id: payload.userId,
       email: payload.email,
       name: payload.name,
-      role: payload.role,
+      systemRole: payload.systemRole,
     };
     next();
   } catch {

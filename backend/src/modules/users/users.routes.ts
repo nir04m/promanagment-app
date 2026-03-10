@@ -8,9 +8,9 @@ import {
   deactivateUserAccount,
 } from './users.controller';
 import { authenticate } from '../../middleware/authenticate';
-import { authorize } from '../../middleware/authorize';
+import { authorizeSystem } from '../../middleware/authorize';
 import { validateQuery } from '../../middleware/validate';
-import { ROLES } from '../../constants/roles';
+import { SYSTEM_ROLES } from '../../constants/roles';
 import { listUsersQuerySchema } from './users.schema';
 
 // Stores uploaded files in memory before passing to Backblaze B2
@@ -21,13 +21,12 @@ const upload = multer({
 
 const router = Router();
 
-// All user routes require authentication
 router.use(authenticate);
 
 router.get('/me', getMyProfile);
 router.patch('/me', upload.single('avatar'), updateProfile);
-router.get('/', authorize(ROLES.PM), validateQuery(listUsersQuerySchema), getAllUsers);
+router.get('/', authorizeSystem(SYSTEM_ROLES.ADMIN), validateQuery(listUsersQuerySchema), getAllUsers);
 router.get('/:userId', getUserProfile);
-router.patch('/:userId/deactivate', authorize(ROLES.PM), deactivateUserAccount);
+router.patch('/:userId/deactivate', authorizeSystem(SYSTEM_ROLES.ADMIN), deactivateUserAccount);
 
 export default router;

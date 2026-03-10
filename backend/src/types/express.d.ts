@@ -1,14 +1,14 @@
-import { Role } from '../constants/roles';
+import { SystemRole, ProjectRole } from '../constants/roles';
 
-// Extends the Express Request type to include the authenticated user on every protected route
+// Extends Express Request with the authenticated user and optional project role
 declare module 'express-serve-static-core' {
   interface Request {
     user?: {
       id: string;
       email: string;
       name: string;
-      role: Role;
-      projectId?: string;
+      systemRole: SystemRole;
     };
+    projectRole?: ProjectRole;
   }
 }

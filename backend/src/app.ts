@@ -59,9 +59,11 @@ app.get(`/api/${env.API_VERSION}/health`, (_req: Request, res: Response) => {
 
 import authRoutes from './modules/auth/auth.routes';
 import userRoutes from './modules/users/users.routes';
+import projectRoutes from './modules/projects/projects.routes';
 
 app.use(`/api/${env.API_VERSION}/auth`, authRoutes);
 app.use(`/api/${env.API_VERSION}/users`, userRoutes);
+app.use(`/api/${env.API_VERSION}/projects`, projectRoutes);
 
 // ─── 404 HANDLER ──────────────────────────────────────
 // Catches any request that does not match a registered route
