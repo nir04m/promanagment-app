@@ -61,11 +61,16 @@ import authRoutes from './modules/auth/auth.routes';
 import userRoutes from './modules/users/users.routes';
 import projectRoutes from './modules/projects/projects.routes';
 import memberRoutes from './modules/members/members.routes';
+import taskRoutes from './modules/tasks/tasks.routes';
+import commentRoutes from './modules/comments/comments.routes';
+
 
 app.use(`/api/${env.API_VERSION}/auth`, authRoutes);
 app.use(`/api/${env.API_VERSION}/users`, userRoutes);
 app.use(`/api/${env.API_VERSION}/projects`, projectRoutes);
 app.use(`/api/${env.API_VERSION}/projects/:projectId/members`, memberRoutes);
+app.use(`/api/${env.API_VERSION}/projects/:projectId/tasks`, taskRoutes);
+app.use(`/api/${env.API_VERSION}/tasks/:taskId/comments`, commentRoutes);
 
 // ─── 404 HANDLER ──────────────────────────────────────
 // Catches any request that does not match a registered route
