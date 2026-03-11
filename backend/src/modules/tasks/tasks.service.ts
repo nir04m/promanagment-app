@@ -7,6 +7,7 @@ import { PaginatedResult } from '../../types';
 import { Request } from 'express';
 import { TaskResponse } from './tasks.types';
 import { CreateTaskInput, UpdateTaskInput, ListTasksQuery } from './tasks.schema';
+import { createNotification } from '../notifications/notifications.service';
 
 // Formats a raw Prisma task record into the client-safe TaskResponse shape
 function formatTask(task: {
@@ -115,6 +116,17 @@ export async function createTask(
     metadata: { projectId, title: input.title },
     req,
   });
+
+  // Notify assignee if task was assigned to someone other than the creator
+  if (input.assigneeId && input.assigneeId !== creatorId) {
+    await createNotification({
+      userId: input.assigneeId,
+      type: 'TASK_ASSIGNED',
+      title: 'New task assigned to you',
+      message: `You have been assigned the task: ${input.title}`,
+      payload: { taskId: task.id, projectId },
+    });
+  }
 
   return formatTask(task);
 }
@@ -237,6 +249,21 @@ export async function updateTask(
     metadata: { changes: input },
     req,
   });
+
+  // Notify new assignee if task was reassigned to someone other than the updater
+  if (
+    input.assigneeId &&
+    input.assigneeId !== userId &&
+    input.assigneeId !== task.assigneeId
+  ) {
+    await createNotification({
+      userId: input.assigneeId,
+      type: 'TASK_ASSIGNED',
+      title: 'New task assigned to you',
+      message: `You have been assigned the task: ${task.title}`,
+      payload: { taskId: task.id, projectId: task.projectId },
+    });
+  }
 
   return formatTask(updated);
 }

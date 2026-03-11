@@ -63,14 +63,28 @@ import projectRoutes from './modules/projects/projects.routes';
 import memberRoutes from './modules/members/members.routes';
 import taskRoutes from './modules/tasks/tasks.routes';
 import commentRoutes from './modules/comments/comments.routes';
+import notificationRoutes from './modules/notifications/notifications.routes';
+import reportRoutes from './modules/reports/reports.routes';
 
 
+
+
+//Auth routes are nested under /auth
 app.use(`/api/${env.API_VERSION}/auth`, authRoutes);
+//User routes are protected by authentication middleware, but not nested since they represent top-level resources
 app.use(`/api/${env.API_VERSION}/users`, userRoutes);
+// Project routes are protected by authentication middleware, but not nested since they represent top-level resources
 app.use(`/api/${env.API_VERSION}/projects`, projectRoutes);
+// Member routes are nested under projects since they manage project-specific memberships
 app.use(`/api/${env.API_VERSION}/projects/:projectId/members`, memberRoutes);
+// Tasks are nested under projects since they belong to specific projects
 app.use(`/api/${env.API_VERSION}/projects/:projectId/tasks`, taskRoutes);
+// Comments are nested under tasks since they belong to specific tasks
 app.use(`/api/${env.API_VERSION}/tasks/:taskId/comments`, commentRoutes);
+// Notification routes
+app.use(`/api/${env.API_VERSION}/notifications`, notificationRoutes);
+// Report routes are protected by authentication middleware, but not nested since they represent top-level resources
+app.use(`/api/${env.API_VERSION}/reports`, reportRoutes);
 
 // ─── 404 HANDLER ──────────────────────────────────────
 // Catches any request that does not match a registered route
