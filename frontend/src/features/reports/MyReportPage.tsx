@@ -2,10 +2,13 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Spinner } from '@/components/ui/Spinner';
-import { Badge } from '@/components/ui/Badge';
 import { useMyReport } from '@/hooks/useReports';
 import { getProjectRoleLabel } from '@/utils/formatters';
 import { ProjectRole } from '@/types';
+
+const roleColor: Record<string, string> = {
+  PM: 'var(--accent)', DESIGNER: 'var(--info)', DEVELOPER: 'var(--success)', QA: 'var(--warning)',
+};
 
 export function MyReportPage() {
   const navigate = useNavigate();
@@ -13,39 +16,36 @@ export function MyReportPage() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col h-full">
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
         <Header title="My Report" />
-        <div className="flex justify-center py-12"><Spinner size="lg" /></div>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '48px' }}><Spinner size="lg" /></div>
       </div>
     );
   }
 
   if (!report) return null;
 
-  const stats = [
-    { label: 'Total Assigned', value: report.totalAssigned },
-    { label: 'Completed', value: report.completedTasks },
-    { label: 'In Progress', value: report.inProgressTasks },
-    { label: 'Overdue', value: report.overdueTasks },
-  ];
-
   return (
-    <div className="flex flex-col h-full">
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Header title="My Report" subtitle="Personal task summary across all projects" />
+      <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
 
-      <div className="flex-1 overflow-y-auto p-6">
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-          {stats.map(({ label, value }) => (
-            <div
-              key={label}
-              className="p-4 rounded-lg border"
-              style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)' }}
-            >
-              <p className="text-xs font-mono uppercase tracking-wide mb-2" style={{ color: 'var(--text-muted)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '20px' }}>
+          {[
+            { label: 'Total Assigned', value: report.totalAssigned },
+            { label: 'Completed', value: report.completedTasks },
+            { label: 'In Progress', value: report.inProgressTasks },
+            { label: 'Overdue', value: report.overdueTasks },
+          ].map(({ label, value }) => (
+            <div key={label} style={{
+              padding: '20px', borderRadius: '8px',
+              border: '1px solid var(--border)', background: 'var(--bg-surface)',
+            }}>
+              <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '10px', fontWeight: 500, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: '10px' }}>
                 {label}
               </p>
-              <p className="text-2xl font-mono font-medium" style={{ color: 'var(--text-primary)' }}>
+              <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '28px', fontWeight: 500, color: 'var(--text-primary)', lineHeight: 1 }}>
                 {value}
               </p>
             </div>
@@ -53,80 +53,83 @@ export function MyReportPage() {
         </div>
 
         {/* Completion bar */}
-        <div
-          className="p-4 rounded-lg border mb-6"
-          style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)' }}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-mono uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+        <div style={{ padding: '20px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-surface)', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+            <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '10px', fontWeight: 500, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--text-muted)' }}>
               Overall Completion
             </p>
-            <p className="text-sm font-mono font-medium" style={{ color: 'var(--text-primary)' }}>
+            <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>
               {report.completionPercentage}%
             </p>
           </div>
-          <div className="h-2 rounded-full overflow-hidden" style={{ background: 'var(--bg-overlay)' }}>
-            <div
-              className="h-full rounded-full transition-all"
-              style={{
-                width: `${report.completionPercentage}%`,
-                background: report.completionPercentage === 100 ? 'var(--success)' : 'var(--accent)',
-              }}
-            />
+          <div style={{ height: '6px', borderRadius: '3px', background: 'var(--bg-overlay)', overflow: 'hidden' }}>
+            <div style={{
+              height: '100%', borderRadius: '3px',
+              width: `${report.completionPercentage}%`,
+              background: report.completionPercentage === 100 ? 'var(--success)' : 'var(--accent)',
+              transition: 'width 0.4s ease',
+            }} />
           </div>
         </div>
 
-        {/* Per-project breakdown */}
-        <div
-          className="rounded-lg border"
-          style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)' }}
-        >
-          <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--border)' }}>
-            <h2 className="text-xs font-mono uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+        {/* Per-project */}
+        <div style={{ borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-surface)', overflow: 'hidden' }}>
+          <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)' }}>
+            <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '10px', fontWeight: 500, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--text-muted)' }}>
               By Project
-            </h2>
+            </p>
           </div>
           {report.tasksByProject.length === 0 ? (
-            <div className="py-10 text-center">
-              <p className="text-sm font-mono" style={{ color: 'var(--text-muted)' }}>No tasks assigned</p>
+            <div style={{ padding: '40px', textAlign: 'center' as const }}>
+              <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '13px', color: 'var(--text-muted)' }}>No tasks assigned</p>
             </div>
           ) : (
-            <div className="divide-y" style={{ borderColor: 'var(--border-subtle)' }}>
-              {report.tasksByProject.map((p) => {
-                const pct = p.assignedTasks > 0 ? Math.round((p.completedTasks / p.assignedTasks) * 100) : 0;
-
-                return (
-                  <div
-                    key={p.projectId}
-                    className="px-4 py-3 flex items-center gap-4 hover:bg-(--bg-elevated) cursor-pointer transition-colors"
-                    onClick={() => navigate(`/projects/${p.projectId}`)}
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <p className="text-sm font-mono font-medium" style={{ color: 'var(--text-primary)' }}>
-                          {p.projectName}
-                        </p>
-                        <Badge variant="role" value={p.projectRole as ProjectRole}>
-                          {getProjectRoleLabel(p.projectRole as ProjectRole)}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'var(--bg-overlay)' }}>
-                          <div
-                            className="h-full rounded-full"
-                            style={{ width: `${pct}%`, background: pct === 100 ? 'var(--success)' : 'var(--accent)' }}
-                          />
-                        </div>
-                        <span className="text-xs font-mono shrink-0" style={{ color: 'var(--text-muted)' }}>
-                          {p.completedTasks}/{p.assignedTasks} done
-                        </span>
-                      </div>
+            report.tasksByProject.map((p, i) => {
+              const pct = p.assignedTasks > 0 ? Math.round((p.completedTasks / p.assignedTasks) * 100) : 0;
+              return (
+                <div
+                  key={p.projectId}
+                  onClick={() => navigate(`/projects/${p.projectId}`)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '16px', padding: '14px 18px',
+                    cursor: 'pointer', transition: 'background 0.1s',
+                    borderBottom: i < report.tasksByProject.length - 1 ? '1px solid var(--border-subtle)' : 'none',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                      <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)' }}>
+                        {p.projectName}
+                      </p>
+                      <span style={{
+                        padding: '2px 7px', borderRadius: '4px',
+                        border: `1px solid ${roleColor[p.projectRole] ?? 'var(--border)'}30`,
+                        background: `${roleColor[p.projectRole] ?? 'var(--bg-overlay)'}10`,
+                        fontFamily: 'DM Mono, monospace', fontSize: '10px',
+                        color: roleColor[p.projectRole] ?? 'var(--text-muted)',
+                        textTransform: 'uppercase' as const, letterSpacing: '0.05em',
+                      }}>
+                        {getProjectRoleLabel(p.projectRole as ProjectRole)}
+                      </span>
                     </div>
-                    <ArrowRight size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ flex: 1, height: '4px', borderRadius: '2px', background: 'var(--bg-overlay)', overflow: 'hidden' }}>
+                        <div style={{
+                          height: '100%', borderRadius: '2px', width: `${pct}%`,
+                          background: pct === 100 ? 'var(--success)' : 'var(--accent)',
+                        }} />
+                      </div>
+                      <span style={{ fontFamily: 'DM Mono, monospace', fontSize: '11px', color: 'var(--text-muted)', flexShrink: 0 }}>
+                        {p.completedTasks}/{p.assignedTasks} done
+                      </span>
+                    </div>
                   </div>
-                );
-              })}
-            </div>
+                  <ArrowRight size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                </div>
+              );
+            })
           )}
         </div>
       </div>

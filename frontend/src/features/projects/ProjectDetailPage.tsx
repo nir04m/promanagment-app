@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Users, BarChart3, Settings, ArrowLeft, Plus } from 'lucide-react';
+import { Users, BarChart3, ArrowLeft, Plus } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
 import { Spinner } from '@/components/ui/Spinner';
 import { TaskBoard } from '@/features/tasks/TaskBoard';
 import { CreateTaskModal } from '@/features/tasks/CreateTaskModal';
@@ -11,7 +10,14 @@ import { useProject } from '@/hooks/useProjects';
 import { useMembers } from '@/hooks/useMembers';
 import { useAuthStore } from '@/stores/authStore';
 import { formatDate } from '@/utils/formatters';
-import { ProjectStatus } from '@/types';
+
+const statusColor: Record<string, string> = {
+  PLANNING: 'var(--text-muted)',
+  ACTIVE: 'var(--accent)',
+  ON_HOLD: 'var(--warning)',
+  COMPLETED: 'var(--success)',
+  CANCELLED: 'var(--danger)',
+};
 
 export function ProjectDetailPage() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -29,7 +35,7 @@ export function ProjectDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
         <Spinner size="lg" />
       </div>
     );
@@ -37,77 +43,72 @@ export function ProjectDetailPage() {
 
   if (!project) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-3">
-        <p className="text-sm font-mono" style={{ color: 'var(--text-muted)' }}>Project not found</p>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '12px' }}>
+        <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '13px', color: 'var(--text-muted)' }}>
+          Project not found
+        </p>
         <Button variant="ghost" onClick={() => navigate('/projects')}>
-          <ArrowLeft size={14} /> Back to projects
+          <ArrowLeft size={13} /> Back to projects
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <Header
-        title={project.name}
-        subtitle={project.description ?? undefined}
-      />
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Header title={project.name} subtitle={project.description ?? undefined} />
 
-      {/* Project toolbar */}
-      <div
-        className="flex items-center justify-between px-6 py-3 border-b gap-4"
-        style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)' }}
-      >
-        <div className="flex items-center gap-3">
+      {/* Toolbar */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 20px', height: '48px', flexShrink: 0,
+        borderBottom: '1px solid var(--border)', background: 'var(--bg-surface)',
+        gap: '12px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <Button variant="ghost" size="sm" onClick={() => navigate('/projects')}>
-            <ArrowLeft size={14} /> Projects
+            <ArrowLeft size={13} /> Projects
           </Button>
-          <div className="w-px h-4" style={{ background: 'var(--border)' }} />
-          <Badge variant="projectStatus" value={project.status as ProjectStatus}>
+          <div style={{ width: '1px', height: '16px', background: 'var(--border)' }} />
+          <span style={{
+            padding: '3px 8px', borderRadius: '4px',
+            border: '1px solid var(--border)', background: 'var(--bg-elevated)',
+            fontFamily: 'DM Mono, monospace', fontSize: '10px',
+            color: statusColor[project.status] ?? 'var(--text-muted)',
+            textTransform: 'uppercase' as const, letterSpacing: '0.05em',
+          }}>
             {project.status}
-          </Badge>
+          </span>
           {project.deadline && (
-            <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
+            <span style={{ fontFamily: 'DM Mono, monospace', fontSize: '11px', color: 'var(--text-muted)' }}>
               Due {formatDate(project.deadline)}
             </span>
           )}
-          <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
+          <span style={{ fontFamily: 'DM Mono, monospace', fontSize: '11px', color: 'var(--text-muted)' }}>
             {members?.length ?? 0} members
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {canCreateTask && (
             <Button size="sm" onClick={() => setShowCreateTask(true)}>
-              <Plus size={14} /> Add Task
+              <Plus size={13} /> Add Task
             </Button>
           )}
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => navigate(`/projects/${projectId}/members`)}
-          >
-            <Users size={14} /> Members
+          <Button variant="secondary" size="sm" onClick={() => navigate(`/projects/${projectId}/members`)}>
+            <Users size={13} /> Members
           </Button>
           {(isPM || isAdmin) && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => navigate(`/projects/${projectId}/report`)}
-            >
-              <BarChart3 size={14} /> Report
+            <Button variant="secondary" size="sm" onClick={() => navigate(`/projects/${projectId}/report`)}>
+              <BarChart3 size={13} /> Report
             </Button>
           )}
         </div>
       </div>
 
       {/* Task board */}
-      <div className="flex-1 overflow-hidden">
-        <TaskBoard
-          projectId={projectId!}
-          currentMember={currentMember}
-          isAdmin={isAdmin}
-        />
+      <div style={{ flex: 1, overflow: 'hidden' }}>
+        <TaskBoard projectId={projectId!} currentMember={currentMember} isAdmin={isAdmin} />
       </div>
 
       {canCreateTask && (

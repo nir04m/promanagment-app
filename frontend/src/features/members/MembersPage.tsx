@@ -3,16 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
-import { Avatar } from '@/components/ui/Avatar';
-import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
-import { Select } from '@/components/ui/Select';
 import { Input } from '@/components/ui/Input';
 import { Spinner } from '@/components/ui/Spinner';
 import { useMembers, useAddMember, useUpdateMemberRole, useRemoveMember } from '@/hooks/useMembers';
 import { useAuthStore } from '@/stores/authStore';
-import { ProjectRole } from '@/types';
-import { getProjectRoleLabel, timeAgo } from '@/utils/formatters';
+import { timeAgo } from '@/utils/formatters';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -21,29 +17,47 @@ const addSchema = z.object({
   userId: z.string().uuid('Enter a valid user ID'),
   projectRole: z.enum(['PM', 'DESIGNER', 'DEVELOPER', 'QA']),
 });
-
 type AddForm = z.infer<typeof addSchema>;
 
-const roleOptions = [
-  { value: 'PM', label: 'Project Manager' },
-  { value: 'DESIGNER', label: 'Designer' },
-  { value: 'DEVELOPER', label: 'Developer' },
-  { value: 'QA', label: 'QA Engineer' },
-];
+const roleLabels: Record<string, string> = {
+  PM: 'Project Manager', DESIGNER: 'Designer', DEVELOPER: 'Developer', QA: 'QA Engineer',
+};
+
+const roleColor: Record<string, string> = {
+  PM: 'var(--accent)', DESIGNER: 'var(--info)', DEVELOPER: 'var(--success)', QA: 'var(--warning)',
+};
+
+const selectStyle: React.CSSProperties = {
+  width: '100%', padding: '9px 12px', borderRadius: '6px',
+  border: '1px solid var(--border)', background: 'var(--bg-elevated)',
+  color: 'var(--text-primary)', fontFamily: 'DM Mono, monospace', fontSize: '13px',
+  outline: 'none',
+};
+
+const labelStyle: React.CSSProperties = {
+  fontFamily: 'DM Mono, monospace', fontSize: '11px', fontWeight: 500,
+  textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-secondary)',
+};
+
+const thStyle: React.CSSProperties = {
+  padding: '10px 16px', textAlign: 'left' as const,
+  fontFamily: 'DM Mono, monospace', fontSize: '10px', fontWeight: 500,
+  textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)',
+  borderBottom: '1px solid var(--border)', background: 'var(--bg-elevated)',
+};
 
 export function MembersPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const [showAdd, setShowAdd] = useState(false);
-  const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
-  const [newRole, setNewRole] = useState<string>('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [newRole, setNewRole] = useState('');
 
   const { data: members, isLoading } = useMembers(projectId!);
   const addMember = useAddMember(projectId!);
   const updateRole = useUpdateMemberRole(projectId!);
   const removeMember = useRemoveMember(projectId!);
-
   const isAdmin = user?.role === 'ADMIN';
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<AddForm>({
@@ -56,123 +70,109 @@ export function MembersPage() {
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <Header title="Members" subtitle={`Team members for this project`} />
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Header title="Members" subtitle="Team members for this project" />
 
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="flex items-center justify-between mb-5">
+      <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
           <Button variant="ghost" size="sm" onClick={() => navigate(`/projects/${projectId}`)}>
-            <ArrowLeft size={14} /> Back to project
+            <ArrowLeft size={13} /> Back to project
           </Button>
           {isAdmin && (
             <Button size="sm" onClick={() => setShowAdd(true)}>
-              <Plus size={14} /> Add Member
+              <Plus size={13} /> Add Member
             </Button>
           )}
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center py-12"><Spinner size="lg" /></div>
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '48px' }}>
+            <Spinner size="lg" />
+          </div>
         ) : (
-          <div
-            className="rounded-lg border overflow-hidden"
-            style={{ borderColor: 'var(--border)' }}
-          >
-            <table className="w-full">
+          <div style={{ borderRadius: '8px', border: '1px solid var(--border)', overflow: 'hidden' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' as const }}>
               <thead>
-                <tr style={{ background: 'var(--bg-surface)' }}>
-                  {['Member', 'Role', 'Joined', ...(isAdmin ? ['Actions'] : [])].map((h) => (
-                    <th
-                      key={h}
-                      className="px-4 py-3 text-left text-xs font-mono uppercase tracking-wide"
-                      style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }}
-                    >
-                      {h}
-                    </th>
-                  ))}
+                <tr>
+                  <th style={thStyle}>Member</th>
+                  <th style={thStyle}>Role</th>
+                  <th style={thStyle}>Joined</th>
+                  {isAdmin && <th style={thStyle}>Actions</th>}
                 </tr>
               </thead>
               <tbody>
-                {members?.map((member) => (
+                {members?.map((member, i) => (
                   <tr
                     key={member.id}
-                    className="border-b hover:bg-(--bg-elevated) transition-colors"
-                    style={{ borderColor: 'var(--border-subtle)' }}
+                    style={{ borderBottom: i < (members.length - 1) ? '1px solid var(--border-subtle)' : 'none' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                   >
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <Avatar name={member.user.name} avatarUrl={member.user.avatarUrl} size="sm" />
+                    <td style={{ padding: '14px 16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{
+                          width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0,
+                          background: 'var(--accent-subtle)', border: '1px solid rgba(59,110,246,0.3)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontFamily: 'DM Mono, monospace', fontSize: '12px', fontWeight: 600, color: 'var(--accent)',
+                        }}>
+                          {member.user.name[0].toUpperCase()}
+                        </div>
                         <div>
-                          <p className="text-sm font-mono font-medium" style={{ color: 'var(--text-primary)' }}>
+                          <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '2px' }}>
                             {member.user.name}
                           </p>
-                          <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
+                          <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '11px', color: 'var(--text-muted)' }}>
                             {member.user.email}
                           </p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3">
-                      {isAdmin && editingMemberId === member.id ? (
-                        <div className="flex items-center gap-2">
+                    <td style={{ padding: '14px 16px' }}>
+                      {isAdmin && editingId === member.id ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <select
                             value={newRole}
                             onChange={(e) => setNewRole(e.target.value)}
-                            className="px-2 py-1 text-xs rounded border bg-transparent outline-none font-mono"
-                            style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+                            style={{ ...selectStyle, width: 'auto', padding: '5px 8px', fontSize: '12px' }}
                           >
-                            {roleOptions.map((r) => (
-                              <option key={r.value} value={r.value} style={{ background: 'var(--bg-elevated)' }}>
-                                {r.label}
-                              </option>
+                            {Object.entries(roleLabels).map(([v, l]) => (
+                              <option key={v} value={v}>{l}</option>
                             ))}
                           </select>
-                          <Button
-                            size="sm"
-                            onClick={() => {
-                              updateRole.mutate(
-                                { memberId: member.id, projectRole: newRole },
-                                { onSuccess: () => setEditingMemberId(null) }
-                              );
-                            }}
-                            loading={updateRole.isPending}
-                          >
+                          <Button size="sm" loading={updateRole.isPending}
+                            onClick={() => updateRole.mutate({ memberId: member.id, projectRole: newRole }, { onSuccess: () => setEditingId(null) })}>
                             Save
                           </Button>
-                          <Button size="sm" variant="ghost" onClick={() => setEditingMemberId(null)}>
-                            Cancel
-                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>Cancel</Button>
                         </div>
                       ) : (
-                        <Badge variant="role" value={member.projectRole as ProjectRole}>
-                          {getProjectRoleLabel(member.projectRole as ProjectRole)}
-                        </Badge>
+                        <span style={{
+                          padding: '3px 8px', borderRadius: '4px',
+                          border: `1px solid ${roleColor[member.projectRole]}30`,
+                          background: `${roleColor[member.projectRole]}10`,
+                          fontFamily: 'DM Mono, monospace', fontSize: '10px', fontWeight: 500,
+                          color: roleColor[member.projectRole] ?? 'var(--text-muted)',
+                          textTransform: 'uppercase' as const, letterSpacing: '0.05em',
+                        }}>
+                          {roleLabels[member.projectRole] ?? member.projectRole}
+                        </span>
                       )}
                     </td>
-                    <td className="px-4 py-3">
-                      <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
+                    <td style={{ padding: '14px 16px' }}>
+                      <span style={{ fontFamily: 'DM Mono, monospace', fontSize: '11px', color: 'var(--text-muted)' }}>
                         {timeAgo(member.joinedAt)}
                       </span>
                     </td>
                     {isAdmin && (
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => {
-                              setEditingMemberId(member.id);
-                              setNewRole(member.projectRole);
-                            }}
-                          >
+                      <td style={{ padding: '14px 16px' }}>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <Button size="sm" variant="ghost"
+                            onClick={() => { setEditingId(member.id); setNewRole(member.projectRole); }}>
                             Edit Role
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="danger"
-                            onClick={() => removeMember.mutate(member.id)}
-                            loading={removeMember.isPending}
-                          >
+                          <Button size="sm" variant="danger" loading={removeMember.isPending}
+                            onClick={() => removeMember.mutate(member.id)}>
                             <Trash2 size={12} />
                           </Button>
                         </div>
@@ -187,25 +187,23 @@ export function MembersPage() {
       </div>
 
       <Modal isOpen={showAdd} onClose={() => setShowAdd(false)} title="Add Member">
-        <form onSubmit={handleSubmit(onAdd)} className="flex flex-col gap-4">
-          <Input
-            label="User ID"
-            placeholder="Paste the user's UUID"
-            error={errors.userId?.message}
-            hint="Go to Admin users list to copy a user's ID"
-            {...register('userId')}
-          />
-          <Select
-            label="Project Role"
-            options={roleOptions}
-            {...register('projectRole')}
-          />
+        <form onSubmit={handleSubmit(onAdd)} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <Input label="User ID" placeholder="Paste the user's UUID" error={errors.userId?.message}
+            hint="Find user IDs in the Users page" {...register('userId')} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <label style={labelStyle}>Project Role</label>
+            <select style={selectStyle} {...register('projectRole')}>
+              {Object.entries(roleLabels).map(([v, l]) => (
+                <option key={v} value={v}>{l}</option>
+              ))}
+            </select>
+          </div>
           {addMember.error && (
-            <p className="text-xs font-mono text-red-400">
+            <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '12px', color: '#f87171' }}>
               {(addMember.error as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Failed to add member'}
             </p>
           )}
-          <div className="flex gap-2 justify-end mt-2">
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
             <Button variant="secondary" type="button" onClick={() => setShowAdd(false)}>Cancel</Button>
             <Button type="submit" loading={addMember.isPending}>Add Member</Button>
           </div>

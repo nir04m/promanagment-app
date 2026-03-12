@@ -1,5 +1,4 @@
-import { cn } from '@/utils/cn';
-import { InputHTMLAttributes, forwardRef } from 'react';
+import { InputHTMLAttributes, forwardRef, useState } from 'react';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -8,16 +7,23 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, hint, className, id, ...props }, ref) => {
+  ({ label, error, hint, id, style, ...props }, ref) => {
+    const [focused, setFocused] = useState(false);
     const inputId = id ?? label?.toLowerCase().replace(/\s+/g, '-');
 
     return (
-      <div className="flex flex-col gap-1.5">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {label && (
           <label
             htmlFor={inputId}
-            className="text-xs font-mono font-medium tracking-wide uppercase"
-            style={{ color: 'var(--text-secondary)' }}
+            style={{
+              fontFamily: 'DM Mono, monospace',
+              fontSize: '11px',
+              fontWeight: 500,
+              textTransform: 'uppercase' as const,
+              letterSpacing: '0.08em',
+              color: 'var(--text-secondary)',
+            }}
           >
             {label}
           </label>
@@ -25,20 +31,34 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         <input
           ref={ref}
           id={inputId}
-          className={cn(
-            'w-full px-3 py-2 text-sm rounded border bg-transparent transition-colors duration-150 outline-none',
-            'placeholder:text-(--text-muted)',
-            'focus:border-(--accent) focus:ring-1 focus:ring-(--accent)/30',
-            error
-              ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20'
-              : 'border-(--border) hover:border-(--text-muted)',
-            className
-          )}
-          style={{ color: 'var(--text-primary)', background: 'var(--bg-elevated)' }}
+          onFocus={(e) => { setFocused(true); props.onFocus?.(e); }}
+          onBlur={(e) => { setFocused(false); props.onBlur?.(e); }}
+          style={{
+            width: '100%',
+            padding: '8px 12px',
+            borderRadius: '6px',
+            border: `1px solid ${error ? '#f87171' : focused ? 'var(--accent)' : 'var(--border)'}`,
+            background: 'var(--bg-elevated)',
+            color: 'var(--text-primary)',
+            fontFamily: 'DM Mono, monospace',
+            fontSize: '13px',
+            outline: 'none',
+            transition: 'border-color 0.15s',
+            boxSizing: 'border-box' as const,
+            ...style,
+          }}
           {...props}
         />
-        {error && <p className="text-xs text-red-400 font-mono">{error}</p>}
-        {hint && !error && <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{hint}</p>}
+        {error && (
+          <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '11px', color: '#f87171' }}>
+            {error}
+          </p>
+        )}
+        {hint && !error && (
+          <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '11px', color: 'var(--text-muted)' }}>
+            {hint}
+          </p>
+        )}
       </div>
     );
   }

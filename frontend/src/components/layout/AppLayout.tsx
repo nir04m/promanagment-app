@@ -3,10 +3,26 @@ import { Sidebar } from './Sidebar';
 
 export function AppLayout() {
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: 'var(--bg-base)' }}>
+    <div style={{
+      display: 'flex',
+      height: '100vh',
+      width: '100vw',
+      overflow: 'hidden',
+      background: 'var(--bg-base)',
+    }}>
       <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-y-auto">
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        minWidth: 0,
+      }}>
+        <main style={{
+          flex: 1,
+          overflowY: 'auto',
+          background: 'var(--bg-base)',
+        }}>
           <Outlet />
         </main>
       </div>

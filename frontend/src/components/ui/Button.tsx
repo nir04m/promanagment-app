@@ -1,6 +1,5 @@
-import { cn } from '@/utils/cn';
+import { ButtonHTMLAttributes, forwardRef, useState } from 'react';
 import { Spinner } from './Spinner';
-import { ButtonHTMLAttributes, forwardRef } from 'react';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
@@ -9,28 +8,78 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
 }
 
+const baseStyles: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '6px',
+  fontFamily: 'DM Mono, monospace',
+  fontWeight: 500,
+  letterSpacing: '0.02em',
+  cursor: 'pointer',
+  transition: 'all 0.15s',
+  border: '1px solid',
+  outline: 'none',
+  flexShrink: 0,
+  whiteSpace: 'nowrap' as const,
+};
+
+const variantStyles: Record<string, React.CSSProperties> = {
+  primary: {
+    background: 'var(--accent)',
+    color: '#ffffff',
+    borderColor: 'var(--accent)',
+  },
+  secondary: {
+    background: 'transparent',
+    color: 'var(--text-primary)',
+    borderColor: 'var(--border)',
+  },
+  ghost: {
+    background: 'transparent',
+    color: 'var(--text-secondary)',
+    borderColor: 'transparent',
+  },
+  danger: {
+    background: 'transparent',
+    color: '#f87171',
+    borderColor: 'rgba(239,68,68,0.3)',
+  },
+};
+
+const hoverStyles: Record<string, React.CSSProperties> = {
+  primary: { background: 'var(--accent-hover)', borderColor: 'var(--accent-hover)' },
+  secondary: { borderColor: 'var(--text-muted)', background: 'var(--bg-elevated)' },
+  ghost: { color: 'var(--text-primary)', background: 'var(--bg-elevated)' },
+  danger: { background: 'rgba(239,68,68,0.1)' },
+};
+
+const sizeStyles: Record<string, React.CSSProperties> = {
+  sm: { padding: '5px 10px', fontSize: '11px', borderRadius: '5px' },
+  md: { padding: '8px 14px', fontSize: '12px', borderRadius: '6px' },
+  lg: { padding: '10px 20px', fontSize: '13px', borderRadius: '6px' },
+};
+
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = 'primary', size = 'md', loading, children, className, disabled, ...props }, ref) => {
-    const base = 'inline-flex items-center justify-center gap-2 font-mono font-medium tracking-wide transition-all duration-150 border focus:outline-none focus:ring-1 focus:ring-[var(--accent)] disabled:opacity-40 disabled:cursor-not-allowed';
+  ({ variant = 'primary', size = 'md', loading, children, style, disabled, ...props }, ref) => {
+    const [hovered, setHovered] = useState(false);
 
-    const variants = {
-      primary: 'bg-[var(--accent)] text-white border-[var(--accent)] hover:bg-[var(--accent-hover)]',
-      secondary: 'bg-transparent text-[var(--text-primary)] border-[var(--border)] hover:border-[var(--text-muted)] hover:bg-[var(--bg-elevated)]',
-      ghost: 'bg-transparent text-[var(--text-secondary)] border-transparent hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]',
-      danger: 'bg-transparent text-red-400 border-red-500/30 hover:bg-red-500/10',
-    };
-
-    const sizes = {
-      sm: 'px-3 py-1.5 text-xs rounded',
-      md: 'px-4 py-2 text-sm rounded',
-      lg: 'px-6 py-2.5 text-sm rounded',
+    const computedStyle: React.CSSProperties = {
+      ...baseStyles,
+      ...variantStyles[variant],
+      ...sizeStyles[size],
+      ...(hovered && !disabled && !loading ? hoverStyles[variant] : {}),
+      ...(disabled || loading ? { opacity: 0.45, cursor: 'not-allowed' } : {}),
+      ...style,
     };
 
     return (
       <button
         ref={ref}
-        className={cn(base, variants[variant], sizes[size], className)}
+        style={computedStyle}
         disabled={disabled || loading}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
         {...props}
       >
         {loading && <Spinner size="sm" />}

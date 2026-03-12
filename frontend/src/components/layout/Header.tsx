@@ -1,8 +1,6 @@
 import { Bell } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useUnreadCount } from '@/hooks/useNotifications';
-import { Avatar } from '@/components/ui/Avatar';
 import { useAuthStore } from '@/stores/authStore';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface HeaderProps {
   title: string;
@@ -11,51 +9,76 @@ interface HeaderProps {
 
 export function Header({ title, subtitle }: HeaderProps) {
   const { user } = useAuthStore();
-  const { data: unreadCount } = useUnreadCount();
-  const navigate = useNavigate();
+  const { data: notifications } = useNotifications();
+  const unreadCount = notifications?.filter((n) => !n.isRead).length ?? 0;
 
   return (
-    <header
-      className="flex items-center justify-between px-6 py-4 border-b shrink-0"
-      style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)' }}
-    >
+    <div style={{
+      height: '56px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '0 24px',
+      borderBottom: '1px solid var(--border)',
+      background: 'var(--bg-surface)',
+      flexShrink: 0,
+    }}>
       <div>
-        <h1 className="text-base font-mono font-medium" style={{ color: 'var(--text-primary)' }}>
+        <h1 style={{
+          fontFamily: 'DM Mono, monospace',
+          fontSize: '14px',
+          fontWeight: 500,
+          color: 'var(--text-primary)',
+          lineHeight: 1,
+        }}>
           {title}
         </h1>
         {subtitle && (
-          <p className="text-xs font-mono mt-0.5" style={{ color: 'var(--text-muted)' }}>
+          <p style={{
+            fontFamily: 'DM Mono, monospace',
+            fontSize: '11px',
+            color: 'var(--text-muted)',
+            marginTop: '3px',
+          }}>
             {subtitle}
           </p>
         )}
       </div>
 
-      <div className="flex items-center gap-3">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {/* Notification bell */}
         <button
-          onClick={() => navigate('/notifications')}
-          className="relative p-2 rounded border transition-colors hover:bg-(--bg-elevated)"
-          style={{ borderColor: 'var(--border)', color: 'var(--text-muted)' }}
+          style={{
+            position: 'relative' as const,
+            width: '34px', height: '34px', borderRadius: '6px',
+            border: '1px solid var(--border)', background: 'transparent',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', transition: 'all 0.15s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
         >
-          <Bell size={16} />
-          {unreadCount !== undefined && unreadCount > 0 && (
-            <span
-              className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-xs font-mono flex items-center justify-center"
-              style={{ background: 'var(--accent)', color: 'white' }}
-            >
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </span>
+          <Bell size={15} style={{ color: 'var(--text-muted)' }} />
+          {unreadCount > 0 && (
+            <div style={{
+              position: 'absolute' as const, top: '6px', right: '6px',
+              width: '6px', height: '6px', borderRadius: '50%',
+              background: 'var(--accent)',
+            }} />
           )}
         </button>
 
-        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/profile')}>
-          <Avatar name={user?.name ?? ''} avatarUrl={user?.avatarUrl} size="sm" />
-          {user && (
-            <span className="text-xs font-mono hidden sm:block" style={{ color: 'var(--text-secondary)' }}>
-              {user.name}
-            </span>
-          )}
+        {/* Avatar */}
+        <div style={{
+          width: '34px', height: '34px', borderRadius: '6px',
+          background: 'var(--accent-subtle)', border: '1px solid rgba(59,110,246,0.3)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontFamily: 'DM Mono, monospace', fontSize: '12px', fontWeight: 600,
+          color: 'var(--accent)', cursor: 'default',
+        }}>
+          {user?.name?.[0]?.toUpperCase() ?? 'U'}
         </div>
       </div>
-    </header>
+    </div>
   );
 }

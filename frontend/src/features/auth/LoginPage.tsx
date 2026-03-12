@@ -31,79 +31,55 @@ export function LoginPage() {
 
   return (
     <div style={{
-      minHeight: '100vh',
       display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '24px',
-      background: 'var(--bg-base)',
+      height: '100vh',
+      width: '100vw',
+      overflow: 'hidden',
     }}>
-      <div style={{
-        width: '100%',
-        maxWidth: '900px',
-        display: 'flex',
-        borderRadius: '12px',
-        border: '1px solid var(--border)',
-        overflow: 'hidden',
-        minHeight: '580px',
-      }}>
 
-        {/* Left — Form */}
-        <div style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          padding: '48px 40px',
-          background: 'var(--bg-surface)',
-        }}>
+      {/* Left half — Form */}
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        background: 'var(--bg-surface)',
+        padding: '48px',
+        overflowY: 'auto',
+      }}>
+        <div style={{ width: '100%', maxWidth: '400px' }}>
 
           {/* Logo */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '36px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '48px' }}>
             <div style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '8px',
-              border: '1px solid var(--accent)',
-              background: 'var(--accent-subtle)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              width: '34px', height: '34px', borderRadius: '8px',
+              border: '1px solid var(--accent)', background: 'var(--accent-subtle)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
             }}>
-              <div style={{ width: '14px', height: '14px', borderRadius: '3px', background: 'var(--accent)' }} />
+              <div style={{ width: '15px', height: '15px', borderRadius: '3px', background: 'var(--accent)' }} />
             </div>
             <span style={{
-              fontFamily: 'DM Mono, monospace',
-              fontSize: '13px',
-              fontWeight: 500,
-              letterSpacing: '3px',
-              textTransform: 'uppercase',
-              color: 'var(--text-primary)',
+              fontFamily: 'DM Mono, monospace', fontSize: '13px', fontWeight: 500,
+              letterSpacing: '3px', textTransform: 'uppercase' as const, color: 'var(--text-primary)',
             }}>
               ProManage
             </span>
           </div>
 
-          <div style={{ marginBottom: '28px' }}>
+          <div style={{ marginBottom: '36px' }}>
             <h1 style={{
-              fontFamily: 'DM Mono, monospace',
-              fontSize: '24px',
-              fontWeight: 500,
-              color: 'var(--text-primary)',
-              marginBottom: '6px',
+              fontFamily: 'DM Mono, monospace', fontSize: '28px', fontWeight: 500,
+              color: 'var(--text-primary)', marginBottom: '10px', lineHeight: 1.3,
             }}>
               Welcome back
             </h1>
-            <p style={{
-              fontFamily: 'DM Mono, monospace',
-              fontSize: '13px',
-              color: 'var(--text-muted)',
-            }}>
+            <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
               Sign in to continue to your workspace
             </p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <Input
               label="Email Address"
               type="email"
@@ -123,29 +99,22 @@ export function LoginPage() {
 
             {login.error && (
               <div style={{
-                padding: '10px 12px',
-                borderRadius: '6px',
-                border: '1px solid rgba(239,68,68,0.25)',
-                background: 'rgba(239,68,68,0.06)',
-                color: '#f87171',
-                fontFamily: 'DM Mono, monospace',
-                fontSize: '12px',
+                padding: '10px 14px', borderRadius: '6px',
+                border: '1px solid rgba(239,68,68,0.25)', background: 'rgba(239,68,68,0.06)',
+                color: '#f87171', fontFamily: 'DM Mono, monospace', fontSize: '12px', lineHeight: 1.5,
               }}>
                 {(login.error as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Invalid email or password'}
               </div>
             )}
 
-            <Button type="submit" loading={login.isPending} style={{ width: '100%', marginTop: '4px' }}>
+            <Button type="submit" loading={login.isPending} style={{ width: '100%', padding: '11px 16px', marginTop: '4px' }}>
               Sign In
             </Button>
           </form>
 
           <p style={{
-            marginTop: '24px',
-            textAlign: 'center',
-            fontFamily: 'DM Mono, monospace',
-            fontSize: '12px',
-            color: 'var(--text-muted)',
+            marginTop: '32px', textAlign: 'center' as const,
+            fontFamily: 'DM Mono, monospace', fontSize: '12px', color: 'var(--text-muted)',
           }}>
             No account?{' '}
             <Link
@@ -158,146 +127,94 @@ export function LoginPage() {
             </Link>
           </p>
         </div>
+      </div>
 
-        {/* Right — Brand panel */}
+      {/* Right half — Brand panel */}
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        padding: '56px 56px',
+        background: 'var(--bg-elevated)',
+        borderLeft: '1px solid var(--border)',
+        position: 'relative' as const,
+        overflow: 'hidden',
+      }}>
+        {/* Grid background */}
         <div style={{
-          width: '380px',
-          flexShrink: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          padding: '48px 40px',
-          background: 'var(--bg-elevated)',
-          borderLeft: '1px solid var(--border)',
-          position: 'relative',
-          overflow: 'hidden',
-        }}>
-          {/* Grid bg */}
+          position: 'absolute' as const, inset: 0, opacity: 0.04, pointerEvents: 'none' as const,
+          backgroundImage: 'linear-gradient(var(--text-primary) 1px, transparent 1px), linear-gradient(90deg, var(--text-primary) 1px, transparent 1px)',
+          backgroundSize: '32px 32px',
+        }} />
+
+        {/* Top accent line */}
+        <div style={{
+          position: 'absolute' as const, top: 0, left: 0, right: 0, height: '2px',
+          background: 'linear-gradient(90deg, transparent, var(--accent) 50%, transparent)',
+        }} />
+
+        {/* Top content */}
+        <div style={{ position: 'relative' as const }}>
           <div style={{
-            position: 'absolute',
-            inset: 0,
-            opacity: 0.04,
-            backgroundImage: 'linear-gradient(var(--text-primary) 1px, transparent 1px), linear-gradient(90deg, var(--text-primary) 1px, transparent 1px)',
-            backgroundSize: '28px 28px',
-          }} />
-
-          {/* Top accent line */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '2px',
-            background: 'linear-gradient(90deg, transparent, var(--accent) 50%, transparent)',
-          }} />
-
-          <div style={{ position: 'relative' }}>
-            {/* Badge */}
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '6px 12px',
-              borderRadius: '6px',
-              border: '1px solid rgba(59,110,246,0.3)',
-              background: 'var(--accent-subtle)',
-              marginBottom: '24px',
-            }}>
-              <div style={{
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                background: 'var(--accent)',
-              }} />
-              <span style={{
-                fontFamily: 'DM Mono, monospace',
-                fontSize: '11px',
-                color: 'var(--accent)',
-                letterSpacing: '0.5px',
-              }}>
-                Project Management Platform
-              </span>
-            </div>
-
-            <h2 style={{
-              fontFamily: 'DM Mono, monospace',
-              fontSize: '18px',
-              fontWeight: 500,
-              color: 'var(--text-primary)',
-              lineHeight: 1.5,
-              marginBottom: '28px',
-            }}>
-              Built for teams that ship fast and stay organized
-            </h2>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {features.map((f) => (
-                <div key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                  <div style={{
-                    width: '16px',
-                    height: '16px',
-                    borderRadius: '4px',
-                    border: '1px solid rgba(59,110,246,0.4)',
-                    background: 'var(--accent-subtle)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    marginTop: '1px',
-                  }}>
-                    <div style={{ width: '6px', height: '6px', borderRadius: '2px', background: 'var(--accent)' }} />
-                  </div>
-                  <span style={{
-                    fontFamily: 'DM Mono, monospace',
-                    fontSize: '12px',
-                    color: 'var(--text-secondary)',
-                    lineHeight: 1.6,
-                  }}>
-                    {f}
-                  </span>
-                </div>
-              ))}
-            </div>
+            display: 'inline-flex', alignItems: 'center', gap: '8px',
+            padding: '6px 14px', borderRadius: '6px',
+            border: '1px solid rgba(59,110,246,0.3)', background: 'var(--accent-subtle)', marginBottom: '36px',
+          }}>
+            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent)' }} />
+            <span style={{ fontFamily: 'DM Mono, monospace', fontSize: '11px', color: 'var(--accent)', letterSpacing: '0.5px' }}>
+              Project Management Platform
+            </span>
           </div>
 
-          {/* Bottom stats */}
-          <div style={{
-            position: 'relative',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: '12px',
-            paddingTop: '24px',
-            borderTop: '1px solid var(--border)',
+          <h2 style={{
+            fontFamily: 'DM Mono, monospace', fontSize: '32px', fontWeight: 500,
+            color: 'var(--text-primary)', lineHeight: 1.4, marginBottom: '40px', maxWidth: '440px',
           }}>
-            {[
-              { value: 'Tasks', label: 'Per project' },
-              { value: 'Roles', label: '4 role types' },
-              { value: 'Reports', label: 'Real-time' },
-            ].map(({ value, label }) => (
-              <div key={label}>
-                <p style={{
-                  fontFamily: 'DM Mono, monospace',
-                  fontSize: '13px',
-                  fontWeight: 500,
-                  color: 'var(--accent)',
-                  marginBottom: '3px',
+            Built for teams that ship fast and stay organized
+          </h2>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            {features.map((f) => (
+              <div key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+                <div style={{
+                  width: '18px', height: '18px', borderRadius: '4px',
+                  border: '1px solid rgba(59,110,246,0.4)', background: 'var(--accent-subtle)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px',
                 }}>
-                  {value}
-                </p>
-                <p style={{
-                  fontFamily: 'DM Mono, monospace',
-                  fontSize: '11px',
-                  color: 'var(--text-muted)',
-                  lineHeight: 1.4,
-                }}>
-                  {label}
-                </p>
+                  <div style={{ width: '7px', height: '7px', borderRadius: '2px', background: 'var(--accent)' }} />
+                </div>
+                <span style={{ fontFamily: 'DM Mono, monospace', fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.7 }}>
+                  {f}
+                </span>
               </div>
             ))}
           </div>
         </div>
 
+        {/* Bottom stats */}
+        <div style={{
+          position: 'relative' as const,
+          display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px',
+          paddingTop: '32px', borderTop: '1px solid var(--border)',
+        }}>
+          {[
+            { value: 'Tasks', label: 'Tracked per project' },
+            { value: 'Roles', label: '4 role types' },
+            { value: 'Reports', label: 'Real-time progress' },
+          ].map(({ value, label }) => (
+            <div key={label}>
+              <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '15px', fontWeight: 500, color: 'var(--accent)', marginBottom: '5px' }}>
+                {value}
+              </p>
+              <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                {label}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
+
     </div>
   );
 }

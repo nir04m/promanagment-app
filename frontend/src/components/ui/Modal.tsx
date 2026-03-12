@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
-import { cn } from '@/utils/cn';
 
 interface ModalProps {
   isOpen: boolean;
@@ -10,13 +9,17 @@ interface ModalProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
+const sizeMap = {
+  sm: '400px',
+  md: '540px',
+  lg: '720px',
+};
+
 export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     if (isOpen) document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
   }, [isOpen, onClose]);
@@ -28,43 +31,75 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
 
   if (!isOpen) return null;
 
-  const sizes = {
-    sm: 'max-w-sm',
-    md: 'max-w-lg',
-    lg: 'max-w-2xl',
-  };
-
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.7)' }}
       onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 50,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '16px',
+        background: 'rgba(0, 0, 0, 0.75)',
+      }}
     >
       <div
-        className={cn('w-full rounded-lg border flex flex-col', sizes[size])}
         style={{
-          background: 'var(--bg-surface)',
-          borderColor: 'var(--border)',
+          width: '100%',
+          maxWidth: sizeMap[size],
           maxHeight: '90vh',
+          display: 'flex',
+          flexDirection: 'column',
+          borderRadius: '8px',
+          border: '1px solid var(--border)',
+          background: 'var(--bg-surface)',
         }}
       >
-        <div
-          className="flex items-center justify-between px-5 py-4 border-b"
-          style={{ borderColor: 'var(--border)' }}
-        >
-          <h2 className="text-sm font-mono font-medium tracking-wide" style={{ color: 'var(--text-primary)' }}>
+        {/* Header */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '16px 20px',
+          borderBottom: '1px solid var(--border)',
+          flexShrink: 0,
+        }}>
+          <h2 style={{
+            fontFamily: 'DM Mono, monospace',
+            fontSize: '14px',
+            fontWeight: 500,
+            color: 'var(--text-primary)',
+            letterSpacing: '0.01em',
+          }}>
             {title}
           </h2>
           <button
             onClick={onClose}
-            className="p-1 rounded transition-colors hover:bg-(--bg-elevated)"
-            style={{ color: 'var(--text-muted)' }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '28px',
+              height: '28px',
+              borderRadius: '6px',
+              border: '1px solid var(--border)',
+              background: 'transparent',
+              color: 'var(--text-muted)',
+              cursor: 'pointer',
+              transition: 'background 0.15s',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
           >
-            <X size={16} />
+            <X size={14} />
           </button>
         </div>
-        <div className="overflow-y-auto flex-1 p-5">
+
+        {/* Body */}
+        <div style={{ overflowY: 'auto', flex: 1, padding: '20px' }}>
           {children}
         </div>
       </div>

@@ -10,6 +10,15 @@ import { MembersPage } from '@/features/members/MembersPage';
 import { MyReportPage } from '@/features/reports/MyReportPage';
 import { ProjectReportPage } from '@/features/reports/ProjectReportPage';
 
+// Temporary stub — replace when UsersPage is built
+function UsersPage() {
+  return (
+    <div style={{ padding: '32px', fontFamily: 'DM Mono, monospace', color: 'var(--text-muted)', fontSize: '13px' }}>
+      Users management — coming soon
+    </div>
+  );
+}
+
 export const router = createBrowserRouter([
   {
     element: <PublicRoute />,
@@ -24,16 +33,18 @@ export const router = createBrowserRouter([
       {
         element: <AppLayout />,
         children: [
+          { index: true, element: <Navigate to="/dashboard" replace /> },
           { path: '/dashboard', element: <DashboardPage /> },
           { path: '/projects', element: <ProjectsPage /> },
           { path: '/projects/:projectId', element: <ProjectDetailPage /> },
           { path: '/projects/:projectId/members', element: <MembersPage /> },
           { path: '/projects/:projectId/report', element: <ProjectReportPage /> },
           { path: '/reports/me', element: <MyReportPage /> },
+          { path: '/users', element: <UsersPage /> },
         ],
       },
     ],
   },
-  { path: '/', element: <Navigate to="/dashboard" /> },
-  { path: '*', element: <Navigate to="/dashboard" /> },
+  { path: '/login', element: <Navigate to="/login" replace /> },
+  { path: '*', element: <Navigate to="/dashboard" replace /> },
 ]);

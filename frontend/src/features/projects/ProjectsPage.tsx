@@ -3,25 +3,30 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Search, FolderKanban } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Badge } from '@/components/ui/Badge';
-import { Spinner } from '@/components/ui/Spinner';
 import { Modal } from '@/components/ui/Modal';
+import { Input } from '@/components/ui/Input';
+import { Spinner } from '@/components/ui/Spinner';
 import { useProjects, useCreateProject } from '@/hooks/useProjects';
 import { useAuthStore } from '@/stores/authStore';
 import { formatDate } from '@/utils/formatters';
-import { ProjectStatus } from '@/types';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 const createSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters').max(150),
+  name: z.string().min(2).max(150),
   description: z.string().max(1000).optional(),
   deadline: z.string().optional(),
 });
-
 type CreateForm = z.infer<typeof createSchema>;
+
+const statusColor: Record<string, string> = {
+  PLANNING: 'var(--text-muted)',
+  ACTIVE: 'var(--accent)',
+  ON_HOLD: 'var(--warning)',
+  COMPLETED: 'var(--success)',
+  CANCELLED: 'var(--danger)',
+};
 
 function CreateProjectModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const createProject = useCreateProject();
@@ -38,27 +43,34 @@ function CreateProjectModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="New Project">
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <Input label="Project Name" placeholder="e.g. Website Redesign" error={errors.name?.message} {...register('name')} />
-        <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-mono font-medium tracking-wide uppercase" style={{ color: 'var(--text-secondary)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <label style={{
+            fontFamily: 'DM Mono, monospace', fontSize: '11px', fontWeight: 500,
+            textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--text-secondary)',
+          }}>
             Description
           </label>
           <textarea
             placeholder="What is this project about?"
             rows={3}
-            className="w-full px-3 py-2 text-sm rounded border bg-transparent resize-none outline-none transition-colors"
-            style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+            style={{
+              width: '100%', padding: '9px 12px', borderRadius: '6px',
+              border: '1px solid var(--border)', background: 'var(--bg-elevated)',
+              color: 'var(--text-primary)', fontFamily: 'DM Mono, monospace', fontSize: '13px',
+              outline: 'none', resize: 'none' as const,
+            }}
             {...register('description')}
           />
         </div>
-        <Input label="Deadline" type="date" error={errors.deadline?.message} {...register('deadline')} />
-
+        <Input label="Deadline" type="date" {...register('deadline')} />
         {createProject.error && (
-          <p className="text-xs font-mono text-red-400">Failed to create project</p>
+          <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '12px', color: '#f87171' }}>
+            Failed to create project
+          </p>
         )}
-
-        <div className="flex gap-2 justify-end mt-2">
+        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
           <Button variant="secondary" type="button" onClick={onClose}>Cancel</Button>
           <Button type="submit" loading={createProject.isPending}>Create Project</Button>
         </div>
@@ -76,70 +88,103 @@ export function ProjectsPage() {
   const isAdmin = user?.role === 'ADMIN';
 
   return (
-    <div className="flex flex-col h-full">
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Header title="Projects" subtitle="All projects you are a member of" />
 
-      <div className="flex-1 overflow-y-auto p-6">
+      <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
         {/* Toolbar */}
-        <div className="flex items-center gap-3 mb-5">
-          <div className="relative flex-1 max-w-sm">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+          <div style={{ position: 'relative' as const, flex: 1, maxWidth: '320px' }}>
+            <Search size={13} style={{
+              position: 'absolute' as const, left: '12px', top: '50%',
+              transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' as const,
+            }} />
             <input
               placeholder="Search projects..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-8 pr-3 py-2 text-sm rounded border bg-transparent outline-none transition-colors focus:border-(--accent)"
-              style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+              style={{
+                width: '100%', paddingLeft: '34px', paddingRight: '12px', paddingTop: '8px', paddingBottom: '8px',
+                borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-surface)',
+                color: 'var(--text-primary)', fontFamily: 'DM Mono, monospace', fontSize: '13px', outline: 'none',
+              }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--accent)'; }}
+              onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
             />
           </div>
           {isAdmin && (
-            <Button onClick={() => setShowCreate(true)}>
-              <Plus size={14} /> New Project
+            <Button onClick={() => setShowCreate(true)} size="sm">
+              <Plus size={13} /> New Project
             </Button>
           )}
         </div>
 
-        {/* Projects grid */}
+        {/* Grid */}
         {isLoading ? (
-          <div className="flex justify-center py-12"><Spinner size="lg" /></div>
-        ) : data?.data?.length === 0 ? (
-          <div
-            className="flex flex-col items-center justify-center py-16 rounded-lg border"
-            style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)' }}
-          >
-            <FolderKanban size={32} style={{ color: 'var(--text-muted)' }} className="mb-3" />
-            <p className="text-sm font-mono" style={{ color: 'var(--text-muted)' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '48px' }}>
+            <Spinner size="lg" />
+          </div>
+        ) : (data?.data?.length ?? 0) === 0 ? (
+          <div style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            padding: '64px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-surface)',
+          }}>
+            <FolderKanban size={28} style={{ color: 'var(--text-muted)', marginBottom: '12px' }} />
+            <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '13px', color: 'var(--text-muted)' }}>
               {search ? 'No projects match your search' : 'No projects yet'}
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '12px' }}>
             {data?.data?.map((project) => (
               <div
                 key={project.id}
-                className="p-4 rounded-lg border cursor-pointer transition-all hover:border-(--text-muted) group"
-                style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)' }}
                 onClick={() => navigate(`/projects/${project.id}`)}
+                style={{
+                  padding: '20px', borderRadius: '8px', border: '1px solid var(--border)',
+                  background: 'var(--bg-surface)', cursor: 'pointer', transition: 'border-color 0.15s',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--text-muted)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
               >
-                <div className="flex items-start justify-between mb-3">
-                  <h3 className="text-sm font-mono font-medium group-hover:text-(--accent) transition-colors" style={{ color: 'var(--text-primary)' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '10px' }}>
+                  <p style={{
+                    fontFamily: 'DM Mono, monospace', fontSize: '14px', fontWeight: 500,
+                    color: 'var(--text-primary)', lineHeight: 1.4,
+                  }}>
                     {project.name}
-                  </h3>
-                  <Badge variant="projectStatus" value={project.status as ProjectStatus}>
+                  </p>
+                  <span style={{
+                    padding: '3px 8px', borderRadius: '4px', flexShrink: 0,
+                    border: '1px solid var(--border)', background: 'var(--bg-elevated)',
+                    fontFamily: 'DM Mono, monospace', fontSize: '10px',
+                    color: statusColor[project.status] ?? 'var(--text-muted)',
+                    textTransform: 'uppercase' as const, letterSpacing: '0.05em',
+                  }}>
                     {project.status}
-                  </Badge>
+                  </span>
                 </div>
-
                 {project.description && (
-                  <p className="text-xs font-mono mb-3 line-clamp-2" style={{ color: 'var(--text-muted)' }}>
+                  <p style={{
+                    fontFamily: 'DM Mono, monospace', fontSize: '12px', color: 'var(--text-muted)',
+                    lineHeight: 1.6, marginBottom: '14px',
+                    overflow: 'hidden', display: '-webkit-box',
+                    WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const,
+                  }}>
                     {project.description}
                   </p>
                 )}
-
-                <div className="flex items-center justify-between text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
-                  <span>{project.memberCount} members · {project.taskCount} tasks</span>
+                <div style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  paddingTop: '12px', borderTop: '1px solid var(--border-subtle)',
+                }}>
+                  <span style={{ fontFamily: 'DM Mono, monospace', fontSize: '11px', color: 'var(--text-muted)' }}>
+                    {project.memberCount} members · {project.taskCount} tasks
+                  </span>
                   {project.deadline && (
-                    <span>Due {formatDate(project.deadline)}</span>
+                    <span style={{ fontFamily: 'DM Mono, monospace', fontSize: '11px', color: 'var(--text-muted)' }}>
+                      Due {formatDate(project.deadline)}
+                    </span>
                   )}
                 </div>
               </div>

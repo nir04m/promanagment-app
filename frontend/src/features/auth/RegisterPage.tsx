@@ -22,7 +22,7 @@ type FormData = z.infer<typeof schema>;
 const roles = [
   { initial: 'P', label: 'Project Manager', description: 'Creates projects, assigns tasks' },
   { initial: 'D', label: 'Designer', description: 'UI/UX work and assets' },
-  { initial: 'D', label: 'Developer', description: 'Engineering and builds' },
+  { initial: 'V', label: 'Developer', description: 'Engineering and builds' },
   { initial: 'Q', label: 'QA Engineer', description: 'Testing and quality assurance' },
 ];
 
@@ -37,155 +37,128 @@ export function RegisterPage() {
 
   return (
     <div style={{
-      minHeight: '100vh',
       display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '24px',
-      background: 'var(--bg-base)',
+      height: '100vh',
+      width: '100vw',
+      overflow: 'hidden',
     }}>
+
+      {/* Left half — Brand panel */}
       <div style={{
-        width: '100%',
-        maxWidth: '900px',
+        flex: 1,
         display: 'flex',
-        borderRadius: '12px',
-        border: '1px solid var(--border)',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        padding: '56px 56px',
+        background: 'var(--bg-elevated)',
+        borderRight: '1px solid var(--border)',
+        position: 'relative' as const,
         overflow: 'hidden',
-        minHeight: '600px',
       }}>
-
-        {/* Left — Brand panel */}
+        {/* Grid background */}
         <div style={{
-          width: '360px',
-          flexShrink: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          padding: '48px 36px',
-          background: 'var(--bg-elevated)',
-          borderRight: '1px solid var(--border)',
-          position: 'relative',
-          overflow: 'hidden',
-        }}>
-          <div style={{
-            position: 'absolute',
-            inset: 0,
-            opacity: 0.04,
-            backgroundImage: 'linear-gradient(var(--text-primary) 1px, transparent 1px), linear-gradient(90deg, var(--text-primary) 1px, transparent 1px)',
-            backgroundSize: '28px 28px',
-          }} />
-          <div style={{
-            position: 'absolute',
-            top: 0, left: 0, right: 0,
-            height: '2px',
-            background: 'linear-gradient(90deg, transparent, var(--accent) 50%, transparent)',
-          }} />
+          position: 'absolute' as const, inset: 0, opacity: 0.04, pointerEvents: 'none' as const,
+          backgroundImage: 'linear-gradient(var(--text-primary) 1px, transparent 1px), linear-gradient(90deg, var(--text-primary) 1px, transparent 1px)',
+          backgroundSize: '32px 32px',
+        }} />
 
-          <div style={{ position: 'relative' }}>
-            {/* Logo */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '32px' }}>
-              <div style={{
-                width: '32px', height: '32px', borderRadius: '8px',
-                border: '1px solid var(--accent)',
-                background: 'var(--accent-subtle)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <div style={{ width: '14px', height: '14px', borderRadius: '3px', background: 'var(--accent)' }} />
-              </div>
-              <span style={{
-                fontFamily: 'DM Mono, monospace', fontSize: '13px',
-                fontWeight: 500, letterSpacing: '3px', textTransform: 'uppercase',
-                color: 'var(--text-primary)',
-              }}>
-                ProManage
-              </span>
-            </div>
+        {/* Top accent line */}
+        <div style={{
+          position: 'absolute' as const, top: 0, left: 0, right: 0, height: '2px',
+          background: 'linear-gradient(90deg, transparent, var(--accent) 50%, transparent)',
+        }} />
 
-            <h2 style={{
-              fontFamily: 'DM Mono, monospace', fontSize: '17px',
-              fontWeight: 500, color: 'var(--text-primary)',
-              lineHeight: 1.5, marginBottom: '8px',
+        <div style={{ position: 'relative' as const }}>
+          {/* Logo */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '48px' }}>
+            <div style={{
+              width: '34px', height: '34px', borderRadius: '8px',
+              border: '1px solid var(--accent)', background: 'var(--accent-subtle)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
             }}>
-              One platform for every role on the team
-            </h2>
-            <p style={{
-              fontFamily: 'DM Mono, monospace', fontSize: '12px',
-              color: 'var(--text-muted)', marginBottom: '24px', lineHeight: 1.6,
-            }}>
-              Your admin will assign you a project role after registration.
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {roles.map(({ initial, label, description }) => (
-                <div key={label} style={{
-                  display: 'flex', alignItems: 'center', gap: '12px',
-                  padding: '10px 12px', borderRadius: '6px',
-                  border: '1px solid var(--border)',
-                  background: 'var(--bg-overlay)',
-                }}>
-                  <div style={{
-                    width: '26px', height: '26px', borderRadius: '6px',
-                    border: '1px solid rgba(59,110,246,0.3)',
-                    background: 'var(--accent-subtle)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    flexShrink: 0,
-                    fontFamily: 'DM Mono, monospace', fontSize: '11px',
-                    fontWeight: 600, color: 'var(--accent)',
-                  }}>
-                    {initial}
-                  </div>
-                  <div>
-                    <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '12px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '1px' }}>
-                      {label}
-                    </p>
-                    <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '11px', color: 'var(--text-muted)' }}>
-                      {description}
-                    </p>
-                  </div>
-                </div>
-              ))}
+              <div style={{ width: '15px', height: '15px', borderRadius: '3px', background: 'var(--accent)' }} />
             </div>
+            <span style={{
+              fontFamily: 'DM Mono, monospace', fontSize: '13px', fontWeight: 500,
+              letterSpacing: '3px', textTransform: 'uppercase' as const, color: 'var(--text-primary)',
+            }}>
+              ProManage
+            </span>
           </div>
 
-          <div style={{
-            position: 'relative',
-            paddingTop: '20px',
-            borderTop: '1px solid var(--border)',
+          <h2 style={{
+            fontFamily: 'DM Mono, monospace', fontSize: '30px', fontWeight: 500,
+            color: 'var(--text-primary)', lineHeight: 1.4, marginBottom: '12px', maxWidth: '420px',
           }}>
-            <p style={{
-              fontFamily: 'DM Mono, monospace', fontSize: '11px',
-              color: 'var(--text-muted)', lineHeight: 1.6,
-            }}>
-              Register first, then ask your admin to add you to a project and assign your role.
-            </p>
+            One platform for every role on the team
+          </h2>
+          <p style={{
+            fontFamily: 'DM Mono, monospace', fontSize: '13px',
+            color: 'var(--text-muted)', marginBottom: '36px', lineHeight: 1.7, maxWidth: '380px',
+          }}>
+            Your admin will assign your project role after registration.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '420px' }}>
+            {roles.map(({ initial, label, description }) => (
+              <div key={label} style={{
+                display: 'flex', alignItems: 'center', gap: '14px',
+                padding: '14px 16px', borderRadius: '8px',
+                border: '1px solid var(--border)', background: 'var(--bg-overlay)',
+              }}>
+                <div style={{
+                  width: '32px', height: '32px', borderRadius: '6px',
+                  border: '1px solid rgba(59,110,246,0.3)', background: 'var(--accent-subtle)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  fontFamily: 'DM Mono, monospace', fontSize: '12px', fontWeight: 600, color: 'var(--accent)',
+                }}>
+                  {initial}
+                </div>
+                <div>
+                  <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', marginBottom: '3px' }}>
+                    {label}
+                  </p>
+                  <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '11px', color: 'var(--text-muted)' }}>
+                    {description}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Right — Form */}
-        <div style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          padding: '48px 40px',
-          background: 'var(--bg-surface)',
-        }}>
-          <div style={{ marginBottom: '28px' }}>
+        <div style={{ position: 'relative' as const, paddingTop: '28px', borderTop: '1px solid var(--border)' }}>
+          <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.7 }}>
+            Register first, then ask your admin to add you to a project and assign your role.
+          </p>
+        </div>
+      </div>
+
+      {/* Right half — Form */}
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        background: 'var(--bg-surface)',
+        padding: '48px',
+        overflowY: 'auto',
+      }}>
+        <div style={{ width: '100%', maxWidth: '400px' }}>
+          <div style={{ marginBottom: '36px' }}>
             <h1 style={{
-              fontFamily: 'DM Mono, monospace', fontSize: '24px',
-              fontWeight: 500, color: 'var(--text-primary)', marginBottom: '6px',
+              fontFamily: 'DM Mono, monospace', fontSize: '28px', fontWeight: 500,
+              color: 'var(--text-primary)', marginBottom: '10px', lineHeight: 1.3,
             }}>
               Create your account
             </h1>
-            <p style={{
-              fontFamily: 'DM Mono, monospace', fontSize: '13px',
-              color: 'var(--text-muted)',
-            }}>
+            <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
               Register to join your team on ProManage
             </p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <Input
               label="Full Name"
               placeholder="Your full name"
@@ -212,25 +185,22 @@ export function RegisterPage() {
 
             {register_.error && (
               <div style={{
-                padding: '10px 12px', borderRadius: '6px',
-                border: '1px solid rgba(239,68,68,0.25)',
-                background: 'rgba(239,68,68,0.06)',
-                color: '#f87171',
-                fontFamily: 'DM Mono, monospace', fontSize: '12px',
+                padding: '10px 14px', borderRadius: '6px',
+                border: '1px solid rgba(239,68,68,0.25)', background: 'rgba(239,68,68,0.06)',
+                color: '#f87171', fontFamily: 'DM Mono, monospace', fontSize: '12px', lineHeight: 1.5,
               }}>
                 {(register_.error as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Registration failed'}
               </div>
             )}
 
-            <Button type="submit" loading={register_.isPending} style={{ width: '100%', marginTop: '4px' }}>
+            <Button type="submit" loading={register_.isPending} style={{ width: '100%', padding: '11px 16px', marginTop: '4px' }}>
               Create Account
             </Button>
           </form>
 
           <p style={{
-            marginTop: '24px', textAlign: 'center',
-            fontFamily: 'DM Mono, monospace', fontSize: '12px',
-            color: 'var(--text-muted)',
+            marginTop: '32px', textAlign: 'center' as const,
+            fontFamily: 'DM Mono, monospace', fontSize: '12px', color: 'var(--text-muted)',
           }}>
             Already have an account?{' '}
             <Link
@@ -243,8 +213,8 @@ export function RegisterPage() {
             </Link>
           </p>
         </div>
-
       </div>
+
     </div>
   );
 }

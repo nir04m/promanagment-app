@@ -2,40 +2,61 @@ import { useNavigate } from 'react-router-dom';
 import { FolderKanban, CheckSquare, Clock, AlertTriangle, ArrowRight } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Spinner } from '@/components/ui/Spinner';
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
-import { Avatar } from '@/components/ui/Avatar';
 import { useProjects } from '@/hooks/useProjects';
 import { useMyReport } from '@/hooks/useReports';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useAuthStore } from '@/stores/authStore';
 import { formatDate, timeAgo, getProjectRoleLabel } from '@/utils/formatters';
-import { ProjectStatus } from '@/types';
 
-function StatCard({ label, value, icon: Icon, accent }: {
+function StatCard({
+  label, value, icon: Icon, accent,
+}: {
   label: string;
   value: number | string;
   icon: React.ElementType;
   accent?: string;
 }) {
   return (
-    <div
-      className="p-4 rounded-lg border flex items-start justify-between"
-      style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)' }}
-    >
+    <div style={{
+      padding: '20px',
+      borderRadius: '8px',
+      border: '1px solid var(--border)',
+      background: 'var(--bg-surface)',
+      display: 'flex',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+      gap: '12px',
+    }}>
       <div>
-        <p className="text-xs font-mono uppercase tracking-wide mb-2" style={{ color: 'var(--text-muted)' }}>
+        <p style={{
+          fontFamily: 'DM Mono, monospace',
+          fontSize: '10px',
+          fontWeight: 500,
+          textTransform: 'uppercase' as const,
+          letterSpacing: '0.08em',
+          color: 'var(--text-muted)',
+          marginBottom: '10px',
+        }}>
           {label}
         </p>
-        <p className="text-2xl font-mono font-medium" style={{ color: accent ?? 'var(--text-primary)' }}>
+        <p style={{
+          fontFamily: 'DM Mono, monospace',
+          fontSize: '28px',
+          fontWeight: 500,
+          color: accent ?? 'var(--text-primary)',
+          lineHeight: 1,
+        }}>
           {value}
         </p>
       </div>
-      <div
-        className="p-2 rounded border"
-        style={{ borderColor: 'var(--border)', background: 'var(--bg-elevated)' }}
-      >
-        <Icon size={16} style={{ color: accent ?? 'var(--text-muted)' }} />
+      <div style={{
+        padding: '8px',
+        borderRadius: '6px',
+        border: '1px solid var(--border)',
+        background: 'var(--bg-elevated)',
+        flexShrink: 0,
+      }}>
+        <Icon size={16} style={{ color: accent ?? 'var(--text-muted)', display: 'block' }} />
       </div>
     </div>
   );
@@ -49,212 +70,261 @@ export function DashboardPage() {
   const { data: notifications } = useNotifications();
 
   const recentNotifications = notifications?.slice(0, 5) ?? [];
-  const unreadNotifications = notifications?.filter((n) => !n.isRead) ?? [];
+  const unreadCount = notifications?.filter((n) => !n.isRead).length ?? 0;
 
   return (
-    <div className="flex flex-col h-full">
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Header
         title={`Good to see you, ${user?.name?.split(' ')[0]}`}
         subtitle="Here is what is happening across your projects"
       />
 
-      <div className="flex-1 overflow-y-auto p-6">
+      <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
+
         {/* Stats row */}
         {reportLoading ? (
-          <div className="flex justify-center py-8"><Spinner /></div>
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
+            <Spinner />
+          </div>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-            <StatCard
-              label="Projects"
-              value={projects?.data?.length ?? 0}
-              icon={FolderKanban}
-              accent="var(--accent)"
-            />
-            <StatCard
-              label="Assigned Tasks"
-              value={report?.totalAssigned ?? 0}
-              icon={CheckSquare}
-            />
-            <StatCard
-              label="In Progress"
-              value={report?.inProgressTasks ?? 0}
-              icon={Clock}
-              accent="var(--warning)"
-            />
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: '12px',
+            marginBottom: '24px',
+          }}>
+            <StatCard label="Projects" value={projects?.data?.length ?? 0} icon={FolderKanban} accent="var(--accent)" />
+            <StatCard label="Assigned Tasks" value={report?.totalAssigned ?? 0} icon={CheckSquare} />
+            <StatCard label="In Progress" value={report?.inProgressTasks ?? 0} icon={Clock} accent="var(--warning)" />
             <StatCard
               label="Overdue"
               value={report?.overdueTasks ?? 0}
               icon={AlertTriangle}
-              accent={report?.overdueTasks ? 'var(--danger)' : undefined}
+              accent={(report?.overdueTasks ?? 0) > 0 ? 'var(--danger)' : undefined}
             />
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Projects list */}
-          <div
-            className="lg:col-span-2 rounded-lg border"
-            style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)' }}
-          >
-            <div
-              className="flex items-center justify-between px-4 py-3 border-b"
-              style={{ borderColor: 'var(--border)' }}
-            >
-              <h2 className="text-xs font-mono uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+        {/* Main grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '16px', marginBottom: '16px' }}>
+
+          {/* Active projects */}
+          <div style={{
+            borderRadius: '8px', border: '1px solid var(--border)',
+            background: 'var(--bg-surface)', overflow: 'hidden',
+          }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '14px 18px', borderBottom: '1px solid var(--border)',
+            }}>
+              <p style={{
+                fontFamily: 'DM Mono, monospace', fontSize: '10px', fontWeight: 500,
+                textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--text-muted)',
+              }}>
                 Active Projects
-              </h2>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/projects')}>
-                View all <ArrowRight size={12} />
-              </Button>
+              </p>
+              <button
+                onClick={() => navigate('/projects')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '4px',
+                  fontFamily: 'DM Mono, monospace', fontSize: '11px', color: 'var(--accent)',
+                  background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px',
+                }}
+              >
+                View all <ArrowRight size={11} />
+              </button>
             </div>
 
             {projectsLoading ? (
-              <div className="flex justify-center py-8"><Spinner /></div>
-            ) : projects?.data?.length === 0 ? (
-              <div className="py-10 text-center">
-                <p className="text-sm font-mono" style={{ color: 'var(--text-muted)' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '32px' }}>
+                <Spinner />
+              </div>
+            ) : (projects?.data?.length ?? 0) === 0 ? (
+              <div style={{ padding: '40px', textAlign: 'center' as const }}>
+                <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '12px', color: 'var(--text-muted)' }}>
                   No projects yet
                 </p>
               </div>
             ) : (
-              <div className="divide-y" style={{ borderColor: 'var(--border-subtle)' }}>
-                {projects?.data?.slice(0, 6).map((project) => (
-                  <div
-                    key={project.id}
-                    className="flex items-center justify-between px-4 py-3 hover:bg-(--bg-elevated) cursor-pointer transition-colors"
-                    onClick={() => navigate(`/projects/${project.id}`)}
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-mono font-medium truncate" style={{ color: 'var(--text-primary)' }}>
-                        {project.name}
-                      </p>
-                      <p className="text-xs font-mono mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                        {project.memberCount} members · {project.taskCount} tasks
-                        {project.deadline && ` · due ${formatDate(project.deadline)}`}
-                      </p>
-                    </div>
-                    <div className="ml-3 shrink-0">
-                      <Badge variant="projectStatus" value={project.status as ProjectStatus}>
-                        {project.status}
-                      </Badge>
-                    </div>
+              projects?.data?.slice(0, 6).map((project, i) => (
+                <div
+                  key={project.id}
+                  onClick={() => navigate(`/projects/${project.id}`)}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '14px 18px', cursor: 'pointer',
+                    borderBottom: i < Math.min((projects?.data?.length ?? 0), 6) - 1 ? '1px solid var(--border-subtle)' : 'none',
+                    transition: 'background 0.1s',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                >
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <p style={{
+                      fontFamily: 'DM Mono, monospace', fontSize: '13px', fontWeight: 500,
+                      color: 'var(--text-primary)', marginBottom: '4px',
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const,
+                    }}>
+                      {project.name}
+                    </p>
+                    <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '11px', color: 'var(--text-muted)' }}>
+                      {project.memberCount} members · {project.taskCount} tasks
+                      {project.deadline && ` · due ${formatDate(project.deadline)}`}
+                    </p>
                   </div>
-                ))}
-              </div>
+                  <div style={{
+                    padding: '3px 8px', borderRadius: '4px', marginLeft: '12px', flexShrink: 0,
+                    border: '1px solid var(--border)', background: 'var(--bg-elevated)',
+                    fontFamily: 'DM Mono, monospace', fontSize: '10px',
+                    color: 'var(--text-muted)', textTransform: 'uppercase' as const, letterSpacing: '0.05em',
+                  }}>
+                    {project.status}
+                  </div>
+                </div>
+              ))
             )}
           </div>
 
           {/* Notifications */}
-          <div
-            className="rounded-lg border flex flex-col"
-            style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)' }}
-          >
-            <div
-              className="flex items-center justify-between px-4 py-3 border-b"
-              style={{ borderColor: 'var(--border)' }}
-            >
-              <h2 className="text-xs font-mono uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+          <div style={{
+            borderRadius: '8px', border: '1px solid var(--border)',
+            background: 'var(--bg-surface)', overflow: 'hidden',
+            display: 'flex', flexDirection: 'column',
+          }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '14px 18px', borderBottom: '1px solid var(--border)', flexShrink: 0,
+            }}>
+              <p style={{
+                fontFamily: 'DM Mono, monospace', fontSize: '10px', fontWeight: 500,
+                textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--text-muted)',
+              }}>
                 Notifications
-              </h2>
-              {unreadNotifications.length > 0 && (
-                <span
-                  className="text-xs font-mono px-1.5 py-0.5 rounded"
-                  style={{ background: 'var(--accent-subtle)', color: 'var(--accent)' }}
-                >
-                  {unreadNotifications.length} new
+              </p>
+              {unreadCount > 0 && (
+                <span style={{
+                  fontFamily: 'DM Mono, monospace', fontSize: '10px',
+                  padding: '2px 7px', borderRadius: '4px',
+                  background: 'var(--accent-subtle)', color: 'var(--accent)',
+                }}>
+                  {unreadCount} new
                 </span>
               )}
             </div>
 
-            <div className="flex-1 overflow-y-auto">
+            <div style={{ flex: 1, overflowY: 'auto' }}>
               {recentNotifications.length === 0 ? (
-                <div className="py-10 text-center">
-                  <p className="text-sm font-mono" style={{ color: 'var(--text-muted)' }}>
+                <div style={{ padding: '40px', textAlign: 'center' as const }}>
+                  <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '12px', color: 'var(--text-muted)' }}>
                     No notifications
                   </p>
                 </div>
               ) : (
-                <div className="divide-y" style={{ borderColor: 'var(--border-subtle)' }}>
-                  {recentNotifications.map((n) => (
-                    <div
-                      key={n.id}
-                      className="px-4 py-3"
-                      style={{ background: !n.isRead ? 'var(--accent-subtle)' : undefined }}
-                    >
-                      <p className="text-xs font-mono font-medium mb-0.5" style={{ color: 'var(--text-primary)' }}>
-                        {n.title}
-                      </p>
-                      <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
-                        {n.message}
-                      </p>
-                      <p className="text-xs font-mono mt-1" style={{ color: 'var(--text-muted)' }}>
-                        {timeAgo(n.createdAt)}
-                      </p>
-                    </div>
-                  ))}
-                </div>
+                recentNotifications.map((n, i) => (
+                  <div
+                    key={n.id}
+                    style={{
+                      padding: '12px 18px',
+                      borderBottom: i < recentNotifications.length - 1 ? '1px solid var(--border-subtle)' : 'none',
+                      background: !n.isRead ? 'var(--accent-subtle)' : 'transparent',
+                    }}
+                  >
+                    <p style={{
+                      fontFamily: 'DM Mono, monospace', fontSize: '12px', fontWeight: 500,
+                      color: 'var(--text-primary)', marginBottom: '3px',
+                    }}>
+                      {n.title}
+                    </p>
+                    <p style={{
+                      fontFamily: 'DM Mono, monospace', fontSize: '11px',
+                      color: 'var(--text-muted)', marginBottom: '4px', lineHeight: 1.5,
+                    }}>
+                      {n.message}
+                    </p>
+                    <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '10px', color: 'var(--text-muted)' }}>
+                      {timeAgo(n.createdAt)}
+                    </p>
+                  </div>
+                ))
               )}
             </div>
           </div>
         </div>
 
-        {/* My tasks by project */}
-        {report && report.tasksByProject.length > 0 && (
-          <div
-            className="mt-4 rounded-lg border"
-            style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)' }}
-          >
-            <div className="px-4 py-3 border-b" style={{ borderColor: 'var(--border)' }}>
-              <h2 className="text-xs font-mono uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+        {/* My task breakdown */}
+        {report && (report.tasksByProject?.length ?? 0) > 0 && (
+          <div style={{
+            borderRadius: '8px', border: '1px solid var(--border)',
+            background: 'var(--bg-surface)', overflow: 'hidden',
+          }}>
+            <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)' }}>
+              <p style={{
+                fontFamily: 'DM Mono, monospace', fontSize: '10px', fontWeight: 500,
+                textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--text-muted)',
+              }}>
                 My Task Breakdown
-              </h2>
+              </p>
             </div>
-            <div className="divide-y" style={{ borderColor: 'var(--border-subtle)' }}>
-              {report.tasksByProject.map((p) => {
-                const completion = p.assignedTasks > 0
-                  ? Math.round((p.completedTasks / p.assignedTasks) * 100)
-                  : 0;
-
-                return (
-                  <div
-                    key={p.projectId}
-                    className="px-4 py-3 flex items-center gap-4 hover:bg-(--bg-elevated) cursor-pointer transition-colors"
-                    onClick={() => navigate(`/projects/${p.projectId}`)}
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <p className="text-sm font-mono font-medium truncate" style={{ color: 'var(--text-primary)' }}>
-                          {p.projectName}
-                        </p>
-                        <Badge variant="role" value={p.projectRole}>
-                          {getProjectRoleLabel(p.projectRole as never)}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="flex-1 h-1 rounded-full overflow-hidden"
-                          style={{ background: 'var(--bg-overlay)' }}
-                        >
-                          <div
-                            className="h-full rounded-full transition-all"
-                            style={{
-                              width: `${completion}%`,
-                              background: completion === 100 ? 'var(--success)' : 'var(--accent)',
-                            }}
-                          />
-                        </div>
-                        <span className="text-xs font-mono shrink-0" style={{ color: 'var(--text-muted)' }}>
-                          {p.completedTasks}/{p.assignedTasks}
-                        </span>
-                      </div>
+            {report.tasksByProject.map((p, i) => {
+              const pct = p.assignedTasks > 0 ? Math.round((p.completedTasks / p.assignedTasks) * 100) : 0;
+              return (
+                <div
+                  key={p.projectId}
+                  onClick={() => navigate(`/projects/${p.projectId}`)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '16px',
+                    padding: '14px 18px', cursor: 'pointer',
+                    borderBottom: i < report.tasksByProject.length - 1 ? '1px solid var(--border-subtle)' : 'none',
+                    transition: 'background 0.1s',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                      <p style={{
+                        fontFamily: 'DM Mono, monospace', fontSize: '13px', fontWeight: 500,
+                        color: 'var(--text-primary)',
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const,
+                      }}>
+                        {p.projectName}
+                      </p>
+                      <span style={{
+                        padding: '2px 7px', borderRadius: '4px', flexShrink: 0,
+                        border: '1px solid rgba(59,110,246,0.3)', background: 'var(--accent-subtle)',
+                        fontFamily: 'DM Mono, monospace', fontSize: '10px', color: 'var(--accent)',
+                        textTransform: 'uppercase' as const, letterSpacing: '0.05em',
+                      }}>
+                        {getProjectRoleLabel(p.projectRole as never)}
+                      </span>
                     </div>
-                    <ArrowRight size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{
+                        flex: 1, height: '4px', borderRadius: '2px',
+                        background: 'var(--bg-overlay)', overflow: 'hidden',
+                      }}>
+                        <div style={{
+                          height: '100%', borderRadius: '2px',
+                          width: `${pct}%`,
+                          background: pct === 100 ? 'var(--success)' : 'var(--accent)',
+                          transition: 'width 0.3s ease',
+                        }} />
+                      </div>
+                      <span style={{
+                        fontFamily: 'DM Mono, monospace', fontSize: '11px',
+                        color: 'var(--text-muted)', flexShrink: 0,
+                      }}>
+                        {p.completedTasks}/{p.assignedTasks}
+                      </span>
+                    </div>
                   </div>
-                );
-              })}
-            </div>
+                  <ArrowRight size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                </div>
+              );
+            })}
           </div>
         )}
+
       </div>
     </div>
   );
