@@ -34,6 +34,7 @@ export interface UserProfile {
   id: string;
   email: string;
   name: string;
+  role: SystemRole;
   avatarUrl: string | null;
   isActive: boolean;
   createdAt: string;

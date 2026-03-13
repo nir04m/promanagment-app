@@ -9,15 +9,9 @@ import { ProjectDetailPage } from '@/features/projects/ProjectDetailPage';
 import { MembersPage } from '@/features/members/MembersPage';
 import { MyReportPage } from '@/features/reports/MyReportPage';
 import { ProjectReportPage } from '@/features/reports/ProjectReportPage';
-
-// Temporary stub — replace when UsersPage is built
-function UsersPage() {
-  return (
-    <div style={{ padding: '32px', fontFamily: 'DM Mono, monospace', color: 'var(--text-muted)', fontSize: '13px' }}>
-      Users management — coming soon
-    </div>
-  );
-}
+import { UsersPage } from '@/features/users/UsersPage';
+import { NotificationsPage } from '@/features/notifications/NotificationsPage';
+import { ProfilePage } from '@/features/profile/ProfilePage';
 
 export const router = createBrowserRouter([
   {
@@ -41,10 +35,11 @@ export const router = createBrowserRouter([
           { path: '/projects/:projectId/report', element: <ProjectReportPage /> },
           { path: '/reports/me', element: <MyReportPage /> },
           { path: '/users', element: <UsersPage /> },
+          { path: '/notifications', element: <NotificationsPage /> },
+          { path: '/profile', element: <ProfilePage /> },
         ],
       },
     ],
   },
-  { path: '/login', element: <Navigate to="/login" replace /> },
   { path: '*', element: <Navigate to="/dashboard" replace /> },
 ]);
