@@ -1,6 +1,6 @@
 import morgan from 'morgan';
 import winston from 'winston';
-import { Request, Response } from 'express';
+
 
 // Creates a Winston logger that writes structured logs to console and file
 const logger = winston.createLogger({

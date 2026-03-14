@@ -6,7 +6,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useUpdateTask, useDeleteTask, useSelfAssignTask } from '@/hooks/useTasks';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { commentsApi } from '@/api/comments';
-import { Task, TaskStatus, TaskPriority } from '@/types';
+import { Task, TaskStatus } from '@/types';
 import { formatDate, timeAgo } from '@/utils/formatters';
 
 const priorityColor: Record<string, string> = {

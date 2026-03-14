@@ -22,4 +22,7 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    outDir: '../frontend/dist',  // already correct, leave as-is
+  }
 });

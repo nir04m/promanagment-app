@@ -61,7 +61,7 @@ export async function createProject(
 // Returns a paginated list of projects the requesting user is a member of
 export async function listProjects(
   userId: string,
-  userRole: string,
+   _userRole: string,
   query: ListProjectsQuery
 ): Promise<PaginatedResult<ProjectResponse>> {
   const { skip, take, page, limit } = getPaginationParams(query);

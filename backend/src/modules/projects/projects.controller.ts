@@ -24,7 +24,7 @@ export const create = catchAsync(async (req: Request, res: Response) => {
 // Returns a paginated list of projects the authenticated user belongs to
 export const list = catchAsync(async (req: Request, res: Response) => {
   const query = req.query as unknown as ListProjectsQuery;
-  const result = await listProjects(req.user!.id, req.user!.role, query);
+  const result = await listProjects(req.user!.id, req.user!.systemRole, query);
   sendSuccess(res, result.data, 'Projects retrieved successfully', 200, result.meta);
 });
 

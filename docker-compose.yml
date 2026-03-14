@@ -1,0 +1,59 @@
+version: '3.9'
+
+services:
+
+  # Backend API — hot-reloads via ts-node-dev
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: backend-dev
+    container_name: promanagement-backend
+    ports:
+      - '5000:5000'
+    volumes:
+      - ./backend/src:/app/backend/src
+      - ./backend/prisma:/app/backend/prisma
+    env_file:
+      - ./backend/.env
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  # Frontend — Vite dev server with HMR
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: frontend-dev
+    container_name: promanagement-frontend
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./frontend/src:/app/frontend/src
+      - ./frontend/public:/app/frontend/public
+    environment:
+      - VITE_API_URL=http://localhost:5000
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # Local Postgres — only used if you are not using Aiven
+  # Comment this out if connecting to Aiven directly
+  db:
+    image: postgres:16-alpine
+    container_name: promanagement-db
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: promanagement
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
