@@ -1,8 +1,7 @@
 import morgan from 'morgan';
 import winston from 'winston';
 
-
-// Creates a Winston logger that writes structured logs to console and file
+// Winston logger (console only)
 const logger = winston.createLogger({
   level: 'info',
   format: winston.format.combine(
@@ -16,13 +15,6 @@ const logger = winston.createLogger({
         winston.format.simple()
       ),
     }),
-    new winston.transports.File({
-      filename: 'logs/error.log',
-      level: 'error',
-    }),
-    new winston.transports.File({
-      filename: 'logs/combined.log',
-    }),
   ],
 });
 
@@ -33,7 +25,7 @@ const stream = {
   },
 };
 
-// Morgan middleware that logs each incoming HTTP request with method, url, status and response time
+// Morgan middleware that logs each incoming HTTP request
 const requestLogger = morgan(
   ':method :url :status :res[content-length] - :response-time ms',
   { stream }
