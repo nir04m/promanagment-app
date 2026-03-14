@@ -12,11 +12,20 @@ import { sanitizeBody } from './middleware/sanitize';
 
 const app: Application = express();
 
-// In production the frontend is built and copied to /app/public inside the Docker image.
-// __dirname will be /app/dist so we go up one level to reach /app/public.
+// In production the frontend build is expected at ../public relative to dist/
+// Example:
+//   backend/dist -> compiled backend
+//   backend/public -> copied frontend build (index.html + assets/)
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
-const IS_PRODUCTION = env.NODE_ENV === 'production';
-const HAS_STATIC = IS_PRODUCTION && fs.existsSync(PUBLIC_DIR);
+const HAS_STATIC = fs.existsSync(path.join(PUBLIC_DIR, 'index.html'));
+
+// Helpful startup logs
+console.log('PUBLIC_DIR:', PUBLIC_DIR);
+console.log('HAS_STATIC:', HAS_STATIC);
+console.log(
+  'INDEX_HTML_EXISTS:',
+  fs.existsSync(path.join(PUBLIC_DIR, 'index.html'))
+);
 
 // ─── SECURITY HEADERS ─────────────────────────────────
 app.use(
@@ -37,8 +46,6 @@ app.use(
 );
 
 // ─── CORS ─────────────────────────────────────────────
-// In production the frontend is served from the same origin so CORS is only
-// needed in development. We still register it so API clients work regardless.
 app.use(
   cors({
     origin: env.CORS_ORIGIN,
@@ -62,9 +69,7 @@ app.use(requestLogger);
 // ─── SANITIZATION ─────────────────────────────────────
 app.use(sanitizeBody);
 
-// ─── STATIC FILES (production only) ───────────────────
-// Serves the built React app. Must come before API routes so asset requests
-// (/assets/index.js etc.) are served directly without hitting the API router.
+// ─── STATIC FILES ─────────────────────────────────────
 if (HAS_STATIC) {
   app.use(express.static(PUBLIC_DIR));
 }
@@ -98,9 +103,7 @@ app.use(`/api/${env.API_VERSION}/tasks/:taskId/comments`, commentRoutes);
 app.use(`/api/${env.API_VERSION}/notifications`, notificationRoutes);
 app.use(`/api/${env.API_VERSION}/reports`, reportRoutes);
 
-// ─── SPA FALLBACK (production only) ───────────────────
-// Any request that does not start with /api is handed to React Router.
-// This must come after all API routes.
+// ─── SPA FALLBACK ─────────────────────────────────────
 if (HAS_STATIC) {
   app.get(/^(?!\/api).*/, (_req: Request, res: Response) => {
     res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
@@ -108,7 +111,6 @@ if (HAS_STATIC) {
 }
 
 // ─── 404 HANDLER ──────────────────────────────────────
-// Only reached by unmatched /api routes in production, or any route in development.
 app.use((req: Request, res: Response) => {
   res.status(404).json({
     success: false,
