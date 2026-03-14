@@ -6,16 +6,18 @@ export function useNotifications() {
     queryKey: ['notifications'],
     queryFn: () => notificationsApi.list(),
     select: (res) => res.data.data,
-    refetchInterval: 30000,
+    refetchInterval: 15_000,      // poll every 15s
+    refetchIntervalInBackground: true,
   });
 }
 
 export function useUnreadCount() {
   return useQuery({
-    queryKey: ['notifications', 'unread'],
-    queryFn: () => notificationsApi.unreadCount(),
-    select: (res) => res.data.data.count,
-    refetchInterval: 30000,
+    queryKey: ['notifications'],
+    queryFn: () => notificationsApi.list(),
+    select: (res) => res.data.data.filter((n) => !n.isRead).length,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: true,
   });
 }
 

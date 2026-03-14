@@ -70,7 +70,9 @@ apiClient.interceptors.response.use(
       });
 
       const newAccessToken: string = response.data.data.accessToken;
+      const newRefreshToken: string = response.data.data.refreshToken;
       useAuthStore.getState().setAccessToken(newAccessToken);
+      useAuthStore.getState().setRefreshToken(newRefreshToken);
       processQueue(null, newAccessToken);
 
       originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;

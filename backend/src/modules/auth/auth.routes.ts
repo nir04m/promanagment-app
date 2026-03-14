@@ -15,7 +15,7 @@ const router = Router();
 // Public routes — rate limited to prevent brute force
 router.post('/register', authRateLimiter, validateBody(registerSchema), register);
 router.post('/login', authRateLimiter, validateBody(loginSchema), login);
-router.post('/refresh', authRateLimiter, validateBody(refreshTokenSchema), refresh);
+router.post('/refresh',  validateBody(refreshTokenSchema), refresh);
 router.post('/logout', validateBody(refreshTokenSchema), logout);
 
 // Protected routes — require valid access token

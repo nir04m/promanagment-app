@@ -92,3 +92,39 @@ input:-webkit-autofill:focus {
   -webkit-text-fill-color: var(--text-primary);
   caret-color: var(--text-primary);
 }
+
+
+/* Add this block to frontend/src/index.css, after the existing :root block */
+ 
+[data-theme="light"] {
+  --bg-base: #f4f4f8;
+  --bg-surface: #ffffff;
+  --bg-elevated: #f0f0f4;
+  --bg-overlay: #e8e8ee;
+  --border: #d8d8e2;
+  --border-subtle: #ebebf2;
+  --text-primary: #0e0e18;
+  --text-secondary: #555568;
+  --text-muted: #9090a8;
+  --accent: #2558e8;
+  --accent-hover: #3468f5;
+  --accent-subtle: rgba(37, 88, 232, 0.10);
+  --success: #16a34a;
+  --warning: #d97706;
+  --danger: #dc2626;
+  --info: #0891b2;
+  --status-backlog: #9090a8;
+  --status-todo: #555568;
+  --status-progress: #2558e8;
+  --status-review: #d97706;
+  --status-done: #16a34a;
+  --priority-low: #16a34a;
+  --priority-medium: #d97706;
+  --priority-high: #dc2626;
+  --priority-critical: #b91c1c;
+}
+ 
+/* Smooth transition when toggling */
+*, *::before, *::after {
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}

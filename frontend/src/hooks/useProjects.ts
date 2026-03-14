@@ -1,11 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { projectsApi } from '@/api/projects';
 
-export function useProjects(params?: { search?: string; status?: string }) {
+export function useProjects(params?: { search?: string }) {
   return useQuery({
     queryKey: ['projects', params],
     queryFn: () => projectsApi.list(params),
-    select: (res) => ({ data: res.data.data, meta: res.data.meta }),
+    select: (res) => res.data,           // add this line
+    refetchInterval: 20_000,
+    refetchIntervalInBackground: true,
   });
 }
 

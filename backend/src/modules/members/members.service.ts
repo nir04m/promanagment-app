@@ -5,6 +5,7 @@ import { writeAuditLog, AUDIT_ACTIONS } from '../../utils/auditLog';
 import { Request } from 'express';
 import { MemberResponse } from './members.types';
 import { AddMemberInput, UpdateMemberRoleInput } from './members.schema';
+import { createNotification } from '../notifications/notifications.service';
 
 // Formats a raw project member record into the client-safe MemberResponse shape
 function formatMember(member: {
@@ -140,6 +141,15 @@ export async function addMemberToProject(
     resourceId: member.id,
     metadata: { projectId, addedUserId: input.userId, projectRole: input.projectRole },
     req,
+  });
+
+  // Notify the user they have been added to the project
+  await createNotification({
+    userId: input.userId,
+    type: 'PROJECT_INVITE',
+    title: 'You have been added to a project',
+    message: `You have been added to "${project.name}" as ${input.projectRole}`,
+    payload: { projectId, projectRole: input.projectRole },
   });
 
   return formatMember(member);

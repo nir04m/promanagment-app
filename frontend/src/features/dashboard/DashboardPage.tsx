@@ -7,6 +7,25 @@ import { useMyReport } from '@/hooks/useReports';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useAuthStore } from '@/stores/authStore';
 import { formatDate, timeAgo, getProjectRoleLabel } from '@/utils/formatters';
+import { NotificationType } from '@/types';
+
+const typeColor: Record<NotificationType, string> = {
+  TASK_ASSIGNED: 'var(--accent)',
+  TASK_UPDATED: 'var(--text-secondary)',
+  TASK_COMMENTED: 'var(--info)',
+  PROJECT_INVITE: 'var(--success)',
+  MEMBER_JOINED: 'var(--success)',
+  DEADLINE_APPROACHING: 'var(--warning)',
+};
+
+const typeLabel: Record<NotificationType, string> = {
+  TASK_ASSIGNED: 'Assigned',
+  TASK_UPDATED: 'Updated',
+  TASK_COMMENTED: 'Comment',
+  PROJECT_INVITE: 'Invite',
+  MEMBER_JOINED: 'Joined',
+  DEADLINE_APPROACHING: 'Deadline',
+};
 
 function StatCard({
   label, value, icon: Icon, accent,
@@ -69,8 +88,9 @@ export function DashboardPage() {
   const { data: report, isLoading: reportLoading } = useMyReport();
   const { data: notifications } = useNotifications();
 
-  const recentNotifications = notifications?.slice(0, 5) ?? [];
-  const unreadCount = notifications?.filter((n) => !n.isRead).length ?? 0;
+  const all = notifications ?? [];
+  const dashboardNotifications = all.slice(0, 2);
+  const unreadCount = all.filter(n => !n.isRead).length;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -106,7 +126,7 @@ export function DashboardPage() {
         )}
 
         {/* Main grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '16px', marginBottom: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '16px', marginBottom: '16px' }}>
 
           {/* Active projects */}
           <div style={{
@@ -185,7 +205,7 @@ export function DashboardPage() {
             )}
           </div>
 
-          {/* Notifications */}
+          {/* Notifications — capped at 2 with View all footer */}
           <div style={{
             borderRadius: '8px', border: '1px solid var(--border)',
             background: 'var(--bg-surface)', overflow: 'hidden',
@@ -212,41 +232,93 @@ export function DashboardPage() {
               )}
             </div>
 
-            <div style={{ flex: 1, overflowY: 'auto' }}>
-              {recentNotifications.length === 0 ? (
-                <div style={{ padding: '40px', textAlign: 'center' as const }}>
+            <div style={{ flex: 1 }}>
+              {dashboardNotifications.length === 0 ? (
+                <div style={{ padding: '32px', textAlign: 'center' as const }}>
                   <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '12px', color: 'var(--text-muted)' }}>
                     No notifications
                   </p>
                 </div>
               ) : (
-                recentNotifications.map((n, i) => (
-                  <div
-                    key={n.id}
-                    style={{
-                      padding: '12px 18px',
-                      borderBottom: i < recentNotifications.length - 1 ? '1px solid var(--border-subtle)' : 'none',
-                      background: !n.isRead ? 'var(--accent-subtle)' : 'transparent',
-                    }}
-                  >
-                    <p style={{
-                      fontFamily: 'DM Mono, monospace', fontSize: '12px', fontWeight: 500,
-                      color: 'var(--text-primary)', marginBottom: '3px',
-                    }}>
-                      {n.title}
-                    </p>
-                    <p style={{
-                      fontFamily: 'DM Mono, monospace', fontSize: '11px',
-                      color: 'var(--text-muted)', marginBottom: '4px', lineHeight: 1.5,
-                    }}>
-                      {n.message}
-                    </p>
-                    <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '10px', color: 'var(--text-muted)' }}>
-                      {timeAgo(n.createdAt)}
-                    </p>
-                  </div>
-                ))
+                dashboardNotifications.map((n, i) => {
+                  const color = typeColor[n.type] ?? 'var(--text-muted)';
+                  const projectId = (n.payload?.projectId as string) ?? null;
+                  return (
+                    <div
+                      key={n.id}
+                      onClick={() => projectId && navigate(`/projects/${projectId}`)}
+                      style={{
+                        display: 'flex', alignItems: 'flex-start', gap: '10px',
+                        padding: '12px 18px',
+                        borderBottom: i < dashboardNotifications.length - 1 ? '1px solid var(--border-subtle)' : 'none',
+                        background: !n.isRead ? 'rgba(59,110,246,0.03)' : 'transparent',
+                        cursor: projectId ? 'pointer' : 'default',
+                        transition: 'background 0.1s',
+                      }}
+                      onMouseEnter={(e) => { if (projectId) e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = !n.isRead ? 'rgba(59,110,246,0.03)' : 'transparent';
+                      }}
+                    >
+                      <div style={{
+                        width: '24px', height: '24px', borderRadius: '6px',
+                        background: `${color}14`, border: `1px solid ${color}25`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexShrink: 0, marginTop: '2px',
+                      }}>
+                        <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: color }} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '2px' }}>
+                          <span style={{
+                            fontFamily: 'DM Mono, monospace', fontSize: '9px', fontWeight: 600,
+                            textTransform: 'uppercase' as const, letterSpacing: '0.07em', color,
+                          }}>
+                            {typeLabel[n.type] ?? n.type}
+                          </span>
+                          {!n.isRead && (
+                            <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--accent)', flexShrink: 0 }} />
+                          )}
+                        </div>
+                        <p style={{
+                          fontFamily: 'DM Mono, monospace', fontSize: '12px', fontWeight: 500,
+                          color: 'var(--text-primary)', marginBottom: '2px',
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const,
+                        }}>
+                          {n.title}
+                        </p>
+                        <p style={{
+                          fontFamily: 'DM Mono, monospace', fontSize: '10px',
+                          color: 'var(--text-muted)',
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const,
+                        }}>
+                          {timeAgo(n.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })
               )}
+            </div>
+
+            {/* Always show View all footer */}
+            <div
+              onClick={() => navigate('/notifications')}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                padding: '10px 18px',
+                borderTop: '1px solid var(--border)',
+                cursor: 'pointer',
+                transition: 'background 0.1s',
+                marginTop: 'auto',
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = 'var(--bg-elevated)'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = 'transparent'; }}
+            >
+              <span style={{ fontFamily: 'DM Mono, monospace', fontSize: '11px', color: 'var(--accent)' }}>
+                {all.length > 2 ? `View all ${all.length} notifications` : 'View all notifications'}
+              </span>
+              <ArrowRight size={11} style={{ color: 'var(--accent)' }} />
             </div>
           </div>
         </div>

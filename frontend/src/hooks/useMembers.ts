@@ -15,7 +15,10 @@ export function useAddMember(projectId: string) {
   return useMutation({
     mutationFn: (data: { userId: string; projectRole: string }) =>
       membersApi.add(projectId, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['members', projectId] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['members', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] }); // add this line
+    },
   });
 }
 
